@@ -1,0 +1,47 @@
+.RegisterpageTitle {
+  width: 100%; /* 設定容器寬度為100% */
+  max-width: 400px; /* 限制最大寬度為400px */
+  margin: 2rem auto; /* 使容器居中並設置上下外邊距為2rem */
+  padding: 1rem; /* 設定內邊距為1rem */
+  background-color: rgba(255, 255, 255, 0.1); /* 設定背景顏色為白色，透明度為10% */
+  border-radius: 8px; /* 設置圓角半徑為8px */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* 設置陰影效果 */
+  display: flex; /* 使用flex布局 */
+  flex-direction: column; /* 設定flex排列方向為垂直（列方向） */
+  align-items: center; /* 將內容水平方向居中對齊 */
+  color:white;
+  /* 使容器垂直和水平方向居中 */
+  position: absolute; /* 使用絕對定位 */
+  top: 50%; /* 垂直居中 */
+  left: 50%; /* 水平居中 */
+  transform: translate(-50%, -50%); /* 根據元素的寬高調整，使元素完全居中 */
+}
+
+.RegisterpageTitle input {
+  width: 92%; /* 設置每個input的寬度為100% */
+  padding: 15px; /* 設置內邊距為12px */
+  margin: 10px 0; /* 設置上下間距為10px */
+  border: 1px solid #ccc; /* 設置邊框顏色為灰色 */
+  border-radius: 4px; /* 設置圓角半徑為4px */
+  font-size: 16px; /* 設置字體大小為16px */
+}
+
+.RegisterpageTitle button {
+  width: 100%; /* 設置按鈕寬度為100% */
+  padding: 12px; /* 設置內邊距為12px */
+  margin: 10px 0; /* 設置上下間距為10px */
+  background-color: #737373; /* 設置背景顏色為藍色 */
+  color: white; /* 設置字體顏色為白色 */
+  border: none; /* 去除邊框 */
+  border-radius: 4px; /* 設置圓角半徑為4px */
+  font-size: 16px; /* 設置字體大小為16px */
+  cursor: pointer; /* 設置鼠標為指針形狀 */
+}
+
+button[type="submit"] {
+    background-color: rgb(61, 102, 0);
+}
+
+button[type="return"] {
+    background-color: rgb(42, 42, 42);
+}

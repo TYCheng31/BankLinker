@@ -1,0 +1,578 @@
+/* ==== Monochrome theme (dark by default) with toggle to light ==== */
+.screen {
+  --bg: #0c0d0f;
+  --panel: #131418;
+  --panel-2: #0f1014;
+  --card: #17191f;
+  --text: #f1f5f9;
+  --muted: #a3aab7;
+  --accent: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: 0 0 0 2px rgba(255, 255, 255, 0.25);
+  --radius: 16px;
+  background:
+    radial-gradient(900px 600px at 100% -10%, rgba(255, 255, 255, 0.08), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  height: 100dvh; /* 以動態視窗高滿版 */
+}
+
+.screen[data-theme="light"] {
+  --bg: #ffffff;
+  --panel: #f7f7f8;
+  --panel-2: #ffffff;
+  --card: #ffffff;
+  --text: #0b0f15;
+  --muted: #6b7280;
+  --accent: #000000;
+  --border: rgba(2, 6, 23, 0.08);
+  --ring: 0 0 0 2px rgba(0, 0, 0, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;  /* 關鍵：移除瀏覽器預設外距 */
+  padding: 0; /* 保險：順便清掉預設內距 */
+}
+
+button {
+  font: inherit;
+}
+
+/* Layout */
+.frame {
+  display: grid;
+  grid-template-columns: 260px 1fr 320px;
+  gap: 20px;
+  width: 100%;
+  padding: 24px;
+  height: calc(100dvh - 48px); /* 扣掉上下 padding，使內容正好貼齊視窗高 */
+}
+
+.left,
+.center,
+.right {
+  height: 100%;
+  min-height: 0; /* 讓 grid 子項可正確收縮，避免 overflow 造成無法滾動 */
+}
+
+.left {
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  overflow: auto; /* 側欄內容過多時自行滾動 */
+}
+
+.center {
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  position: relative;
+  overflow: auto; /* 由中欄作為滾動容器，sticky header 才會生效 */
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+.right {
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  overflow: auto; /* 側欄內容過多時自行滾動 */
+}
+
+/* Sidebar */
+.sidebarGroupTitle {
+  margin: 8px 6px;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  transition: 0.2s ease;
+  cursor: pointer;
+}
+
+.navBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.userBar {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 20px;
+  background: var(--panel);     /* 跟著主題切換，且不透明 */
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+
+.userLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.userAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fff, #bbb);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.themeToggle {
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.themeToggle:hover {
+  box-shadow: var(--ring);
+}
+
+.userbutton {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, #fff, #ddd);
+  color: #0b0f15;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.screen[data-theme="dark"] .userbutton {
+  background: linear-gradient(180deg, #1f222a, #121419);
+  color: var(--text);
+}
+
+.userbutton:hover {
+  transform: translateY(-1px);
+}
+
+.userbutton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Main */
+.centerPanel {
+  padding: 20px;
+}
+
+.bankGrid {
+  display: flex;
+  flex-direction: column;  /* 由上而下 */
+  gap: 16px;
+}
+
+/* 讓標題(左) + 統計列(右) 同排呈現 */
+.bankCard {
+  display: flex;                      /* 橫向排列子元素 */
+  align-items: center;                /* 垂直置中 */
+  justify-content: space-between;     /* 左右分散 */
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;                 /* 給一點內距讓內容不貼邊 */
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);            /* 建議用卡片色，比用 --border 好看 */
+  transition: 0.2s ease;
+}
+
+.bankCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  border-color: rgba(30, 255, 0, 0.22);
+}
+
+/* 左側：銀行圖 + 文字（維持橫向排列，但取消下邊距） */
+.bankHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;                          /* 重要：原本有 margin-bottom，拿掉 */
+}
+
+.bankLogo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #0b1020;
+  background: linear-gradient(135deg, #fff, #d9d9d9);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.bankName {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--text);
+}
+
+.bankMeta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* 右側：統計列（改為貼右側、同行顯示） */
+.statRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;                    /* 太擠時自動換行 */
+  margin: 0;                          /* 重要：原本有 margin-top，拿掉 */
+  margin-left: auto;                  /* 把整個 statRow 推到最右 */
+  color: var(--text);
+}
+
+/* chip 不要換行，視覺更穩定 */
+.chip {
+  white-space: nowrap;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2, 6, 23, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+}
+
+.modalBody {
+  width: min(460px, 92vw);
+  border-radius: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  padding: 18px;
+  color: var(--text);
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.form input,
+.form select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  outline: none;
+  transition: 0.15s ease;
+}
+
+.form input:focus,
+.form select:focus {
+  box-shadow: var(--ring);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.primary {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #0b0f15;
+  background: linear-gradient(180deg, #fff, #e5e7eb);
+  border: 1px solid var(--border);
+}
+
+.screen[data-theme="dark"] .primary {
+  color: var(--text);
+  background: linear-gradient(180deg, #1f222a, #121419);
+}
+
+.msg {
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+/* Overlay */
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2, 6, 23, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 9999;
+}
+
+.spinner {
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top: 3px solid var(--accent);
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.emptyTip {
+  color: var(--muted);
+}
+
+.fab {
+  position: sticky;                               /* 釘在滾動容器的可視區 */
+  bottom: max(16px, env(safe-area-inset-bottom)); /* 距底 16px（含 iPhone 安全區） */
+  margin-left: auto;                               /* 水平推到最右 */
+  margin-right: max(16px, env(safe-area-inset-right));
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;                              /* 圓形 */
+  display: grid;
+  place-items: center;
+  z-index: 20;                                     /* 蓋過內容 */
+}
+
+
+
+.screen[data-theme="dark"] .fab {
+  background: linear-gradient(180deg, #1f222a, #121419);
+  color: var(--text);
+}
+
+.fab:hover {
+  filter: brightness(1.05);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  z-index: 11000;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .frame {
+    grid-template-columns: 1fr;
+  }
+  .right {
+    display: none;
+  }
+}
+
+/* 覆蓋版 bankLogo 與圖示樣式 */
+.bankLogo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--panel-2); /* 你的主題變數 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  overflow: hidden; /* 讓圖片不會溢出 */
+}
+
+/* 圖檔樣式：保持等比、內縮一點避免貼邊 */
+.bankLogoImg {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+  display: block;
+}
+
+/* 字母備援樣式（當沒有對應圖時） */
+.bankLogoFallback {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  opacity: 0.9;
+}
+
+
+/*Switch Theme*/
+.themeSwitch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.themeSwitch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.slider {
+  position: relative;
+  width: 64px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
+
+.knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(0,0,0,.25);
+  transition: transform .22s ease;
+}
+
+/* 左右小圖示 */
+.optionLeft,
+.optionRight {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  opacity: .6;
+  pointer-events: none;
+}
+.optionLeft { left: 8px; }
+.optionRight { right: 8px; }
+
+/* 焦點可見 & 切換動畫 */
+.themeSwitch input:focus-visible + .slider {
+  box-shadow: var(--ring);
+}
+.themeSwitch input:checked + .slider .knob {
+  transform: translateX(36px);   /* 64 - 24 - 4 = 36 */
+}
+.themeSwitch input:checked + .slider .optionRight { opacity: 1; }
+.themeSwitch input:not(:checked) + .slider .optionLeft { opacity: 1; }
+
+.switchText {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+
+/* 這是模態框的樣式 */
+/* 這是模態框的樣式 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 300px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.cancelBtn, .confirmBtn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  background-color: #f44336;
+  color: white;
+}
+
+.confirmBtn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.deleteIcon {
+  width: 20px;
+  height: 20px;
+}
+
