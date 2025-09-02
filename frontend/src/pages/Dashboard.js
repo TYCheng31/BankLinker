@@ -150,7 +150,7 @@ const Dashboard = () => {
 
     const fetchUser = async () => {
       try {
-        const res = await axios.get("http://192.168.0.161:8000/auth/me");
+        const res = await axios.get("/auth/me");
         setUserEmail(res.data.email || "");
       } catch (err) {
         console.error("Error fetching user info:", err);
@@ -159,7 +159,7 @@ const Dashboard = () => {
 
     const fetchBanks = async () => {
       try {
-        const response = await axios.get("http://192.168.0.161:8000/bank-connections");
+        const response = await axios.get("/bank-connections");
         setBanks(normalizeConnections(response.data));
       } catch (err) {
         console.error("Error fetching bank connections:", err);
@@ -202,7 +202,7 @@ const Dashboard = () => {
     };
 
     try {
-      const res = await axios.post("http://192.168.0.161:8000/bank-connections/", payload);
+      const res = await axios.post("/bank-connections/", payload);
       setMessage("✅");
       setForm({ bank_id: "", provider: "", account: "", password: "" });
       setShowAddContainer(false);
@@ -256,7 +256,7 @@ const Dashboard = () => {
       const encodedProvider = encodeURIComponent(provider);
       const encodedBankId   = encodeURIComponent(bankid);
 
-      await axios.delete(`http://192.168.0.161:8000/bank-connections/${encodedProvider}/${encodedBankId}`);
+      await axios.delete(`/bank-connections/${encodedProvider}/${encodedBankId}`);
 
       // 只刪除同一個 provider + bankid 的那一筆
       setBanks((prev) => prev.filter(x => !(x.bankid === bankid && x.provider === provider)));
@@ -277,17 +277,12 @@ const Dashboard = () => {
   const UpdateLinebank = async () => {
     try {
       setLoading(true);
-      const API = "http://192.168.0.161:8000";
-      const { data: bankData } = await axios.get(`${API}/bank-connections/line_bank`);
+      const { data: bankData } = await axios.get('/bank-connections/line_bank');
       const account = bankData.bankaccount;
       const password = bankData.bankpassword;
       const id = bankData.bankid;
 
-      const res = await axios.post(
-        `${API}/bank-connections/update_cash`,
-        { account, password, id },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const res = await axios.post('/bank-connections/update_cash', { account, password, id }, { headers: { "Content-Type": "application/json" } });
       setMainAccount(res.data.account_name);
       setAvailableBalance(res.data.available_balance);
       setLastUpdated(new Date().toISOString());
@@ -351,7 +346,7 @@ const Dashboard = () => {
           <button onClick={() => navigate("/page1")} className={styles.navBtn}>
             🏠 Dashboard
           </button>
-          <button onClick={() => navigate("/https://www.notion.so/24864596b87a807faae1fdaf3a220718?source=copy_link")} className={styles.navBtn}>
+          <button onClick={() => navigate("/page2")} className={styles.navBtn}>
             📄 Reports
           </button>
 

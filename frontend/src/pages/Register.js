@@ -11,6 +11,7 @@ const Register = () => {
         e.preventDefault();
         try {
             const response = await axios.post("/users/register", {email, password});
+            console.log(response);
             alert("Registration Successful");
         } catch (error) {
             alert("Error Registering")
