@@ -1,9 +1,10 @@
 # app/schemas/bank_connection.py
-from pydantic import BaseModel
+from pydantic import BaseModel, condecimal
 from datetime import datetime
+from typing import Optional
 
 class BankConnectionCreate(BaseModel):
-    provider: str        # 讓 DB 來驗證是不是合法 ENUM 值
+    provider: str        
     bankaccount: str
     bankid: str
     bankpassword: str

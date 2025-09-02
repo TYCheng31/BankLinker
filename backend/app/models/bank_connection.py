@@ -13,12 +13,7 @@ class BankConnection(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    provider = Column(
-        PGEnum('ESUN_BANK', 'CATHAY_BANK', 'LINE_BANK',  
-            name='bank_provider',
-            create_type=False),                       
-            nullable=False
-    )
+    provider = Column(PGEnum('ESUN_BANK', 'CATHAY_BANK', 'LINE_BANK', name='bank_provider', create_type=False), nullable=False)
     
     bankaccount = Column(String, nullable=False)
     bankid = Column(String, nullable=False)

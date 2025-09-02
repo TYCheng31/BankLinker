@@ -2,12 +2,13 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-
+from sqlalchemy import func
 from app.database.db import get_db
 from app.models.bank_connection import BankConnection as DBBankConnection
 from app.models.user import User
 from app.schemas.bank_connection import BankConnectionCreate, BankConnectionOut
 from app.utils.security import get_current_user
+from datetime import datetime, timezone
 
 import subprocess
 import os
@@ -44,7 +45,7 @@ def create_bank_connection(
         provider=bank.provider,
         bankaccount=bank.bankaccount,
         bankid=bank.bankid,
-        bankpassword=bank.bankpassword,  # 之後建議改成加密儲存
+        bankpassword=bank.bankpassword,  
     )
 
     try:
@@ -75,15 +76,18 @@ class UpdateCashIn(BaseModel):
     account: str
     password: str
     id: str   
+    provider: str
 
 @router.post("/update_cash")
 async def update_cash(
     payload: UpdateCashIn,
+    db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     account = payload.account
     password = payload.password
     bank_conn_id = payload.id
+    provider = payload.provider
 
     script_path = '/home/ty/Desktop/Property/bankhub/backend/app/mypython/test.py'
 
@@ -97,13 +101,34 @@ async def update_cash(
         try:
             print(f"[DEBUG] Script output: {result.stdout}")  # 打印腳本輸出的內容
             result_data = json.loads(result.stdout)
+
             account_name = result_data.get("account_name")
             available_balance = result_data.get("available_balance")
+
+            conn = (
+                db.query(DBBankConnection)
+                #確認該bankCard
+                .filter(
+                    DBBankConnection.bankid == bank_conn_id,   
+                    DBBankConnection.provider == provider, 
+                )
+                .one_or_none()
+            )
+            if not conn:
+                raise HTTPException(status_code=404, detail="Bank connection not found")
+
+            conn.last_update = datetime.now(timezone.utc) 
+            # conn.cash = available_balance
+            db.commit()
+            db.refresh(conn)
+
+
             return {
                 "message": "Cash updated successfully",
                 "account_name": account_name,
                 "available_balance": available_balance,
             }
+
         except json.JSONDecodeError:
             raise HTTPException(status_code=500, detail="Failed to parse the response from the script")
     else:
@@ -111,6 +136,9 @@ async def update_cash(
 
 
 
+#==================================================================#
+#讓後端爬蟲程式取得銀行的帳號密碼                                    #
+#==================================================================#
 @router.get("/line_bank", response_model=dict)
 def get_line_bank_account(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     """

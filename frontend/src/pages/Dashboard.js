@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./Dashboard.module.css";
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
-const versionNumber = "v1.0.1 250831";
+const versionNumber = "v1.0.2 250902";
 
 function normalizeConnections(arr) {
   return (arr || []).map((b) => ({
@@ -122,7 +122,7 @@ function labelOf(p) {
 const Dashboard = () => {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ bank_id: "", provider: "", account: "", password: "" });
+  const [form, setForm] = useState({ bank_id: "", provider: "", account: "", password: ""});
   const [message, setMessage] = useState("");
   const [banks, setBanks] = useState([]);
   const [showAddContainer, setShowAddContainer] = useState(false);
@@ -281,8 +281,9 @@ const Dashboard = () => {
       const account = bankData.bankaccount;
       const password = bankData.bankpassword;
       const id = bankData.bankid;
+      const provider = "LINE_BANK";
 
-      const res = await axios.post('/bank-connections/update_cash', { account, password, id }, { headers: { "Content-Type": "application/json" } });
+      const res = await axios.post('/bank-connections/update_cash', { account, password, id, provider}, { headers: { "Content-Type": "application/json" } });
       setMainAccount(res.data.account_name);
       setAvailableBalance(res.data.available_balance);
       setLastUpdated(new Date().toISOString());
