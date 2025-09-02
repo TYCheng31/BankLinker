@@ -7,7 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import axios from 'axios';
 
 // ====== axios 全域設定 ======
-axios.defaults.baseURL = process.env.REACT_APP_API_BASE || 'http://192.168.242.143:8000';
+axios.defaults.baseURL = process.env.REACT_APP_API_BASE || 'http://192.168.0.161:8000';
 
 
 // 啟動時套用 Authorization 標頭

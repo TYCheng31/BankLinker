@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./Dashboard.module.css";
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
-const versionNumber = "v1.0.2 250902";
+const versionNumber = "v1.1.1 250902";
 
 function normalizeConnections(arr) {
   return (arr || []).map((b) => ({
@@ -13,6 +13,7 @@ function normalizeConnections(arr) {
     bankaccount: b.bankaccount ?? "",
     bankpassword: b.bankpassword ?? "",
     bankid: b.bankid ?? "",
+    last_update: b.last_update ?? null,
   }));
 }
 
@@ -237,7 +238,8 @@ const Dashboard = () => {
     }
   };
 
-  // 打開 Modal（放在 Dashboard component 裡）
+//################## 刪除bankCard ######################################################################
+
   const handleOpenModal = (bank) => {
     setSelectedBank(bank);
     setIsModalOpen(true);
@@ -274,7 +276,11 @@ const Dashboard = () => {
 
   const toggleAddContainer = () => setShowAddContainer((v) => !v);
 
-  const UpdateLinebank = async () => {
+//########################## 爬蟲抓取各家銀行 ##########################################################
+//
+// LineBank、CathayBank、EsunBank
+//
+  const UpdateLinebank = async (bank) => {
     try {
       setLoading(true);
       const { data: bankData } = await axios.get('/bank-connections/line_bank');
@@ -286,7 +292,19 @@ const Dashboard = () => {
       const res = await axios.post('/bank-connections/update_cash', { account, password, id, provider}, { headers: { "Content-Type": "application/json" } });
       setMainAccount(res.data.account_name);
       setAvailableBalance(res.data.available_balance);
-      setLastUpdated(new Date().toISOString());
+
+      const nowIso = new Date().toISOString();
+      setLastUpdated(nowIso);
+
+      // 只更新被點擊的那一筆
+      setBanks((prev) =>
+        prev.map((x) =>
+          x.bankid === id && String(x.provider).toUpperCase() === provider
+            ? { ...x, account, cash: res.data.available_balance, last_update: nowIso }
+            : x
+        )
+      );
+
     } catch (err) {
       const errMsg =
         err?.response?.data?.detail
@@ -309,6 +327,8 @@ const Dashboard = () => {
     setBanner("Cathay Bank is not finished yet");
     setTimeout(() => setBanner(null), 2000);
   };
+
+//###################################################################################################
 
   const providerUpdaters = {
     LINE_BANK: UpdateLinebank,
@@ -427,15 +447,15 @@ const Dashboard = () => {
                       </div>
                       <div>
                         <div className={styles.bankName}>{labelOf(b.provider)}</div>
-                        <div className={styles.bankMeta}>{mainAccount}</div>
+                        <div className={styles.bankMeta}>{b.account_name || ""}</div>
                       </div>
                     </div>
                     <div className={styles.statRow}>
                       <span className={styles.chip}>
-                        Balance: {availableBalance ? formatCurrencyTWD(availableBalance) : "—"}
+                        Balance: {b.cash ? formatCurrencyTWD(b.cash) : "—"}
                       </span>
                       <span className={styles.chip}>
-                        Updated: {lastUpdated ? formatTimeLocalTPE(lastUpdated) : "—"}
+                        Updated: {b.last_update ? formatTimeLocalTPE(b.last_update) : "—"}
                       </span>
 
                       <button
