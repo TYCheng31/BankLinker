@@ -14,6 +14,7 @@ function normalizeConnections(arr) {
     bankpassword: b.bankpassword ?? "",
     bankid: b.bankid ?? "",
     last_update: b.last_update ?? null,
+    account_name: b.account_name ?? "",
   }));
 }
 
@@ -219,6 +220,8 @@ const Dashboard = () => {
           bankaccount: created.bankaccount ?? "",
           bankpassword: "",
           bankid: created.bankid ?? "",
+          account_name: res.data.account_name,
+
         },
       ]);
     } catch (err) {
@@ -477,7 +480,9 @@ const Dashboard = () => {
                       </div>
                       <div>
                         <div className={styles.bankName}>{labelOf(b.provider)}</div>
-                        <div className={styles.bankMeta}>{b.account_name || ""}</div>
+                        <div className={styles.bankMeta}>
+                          {maskAccount(mainAccount)}
+                        </div>
                       </div>
                     </div>
                     <div className={styles.statRow}>

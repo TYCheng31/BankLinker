@@ -42,47 +42,15 @@ except Exception:
     driver.set_window_size(1920, 1080)   # 也可視需求調成 2560x1440 等
 
 # ======================== 登入流程 ========================
-driver.get("https://ebank.esunbank.com.tw/index.jsp")
-wait = WebDriverWait(driver, 120)
+driver.get("https://www.cathaybk.com.tw/MyBank/")  # 國泰網銀登入或帳戶頁
 
-# 先切進 iframe1
-driver.switch_to.default_content()
-WebDriverWait(driver, 20).until(
-    EC.frame_to_be_available_and_switch_to_it((By.ID, "iframe1"))
-)
-
-# 找到 custid 欄位並輸入
-cust_input = WebDriverWait(driver, 20).until(
-    EC.visibility_of_element_located((By.ID, "loginform:custid"))
-)
-cust_input.clear()
-cust_input.send_keys(EsunId)
-
-cust_input = WebDriverWait(driver, 20).until(
-    EC.visibility_of_element_located((By.ID, "loginform:name"))
-)
-cust_input.clear()
-cust_input.send_keys(EsunAccount)
-
-cust_input = WebDriverWait(driver, 20).until(
-    EC.visibility_of_element_located((By.ID, "loginform:pxsswd"))
-)
-cust_input.clear()
-cust_input.send_keys(EsunPassword)
-
-login_btn = WebDriverWait(driver, 20).until(
-    EC.element_to_be_clickable((By.ID, "loginform:linkCommand"))
-)
-login_btn.click()
-
-
-balance_td = WebDriverWait(driver, 30).until(
-    EC.presence_of_element_located((By.CSS_SELECTOR, "td.td_money"))
-)
-
-# 取文字內容並去掉空白
-balance_text = balance_td.text.strip()
-print("可用餘額：", balance_text)
+for req in driver.requests:
+    if req.response and "/api/" in (req.url or ""):
+        ctype = (req.response.headers.get("Content-Type") or "").lower()
+        if "application/json" in ctype:
+            body = sw_decode(req.response.body, req.response.headers.get('Content-Encoding', 'identity'))
+            print("API:", req.url)
+            print(body.decode("utf-8", "ignore")[:1200])
 
 
 # ======================== 等待你關閉瀏覽器 ========================
