@@ -59,7 +59,7 @@ const Login = () => {
     <>
       <div className={styles.LoginpageTitle}>
         <h1 className={styles.LoginheroTitle}>Bank Linker</h1>
-        <p className={styles.LoginheroSubtitle}>Budget Tracker Secure. Fast. Easy.</p>
+        <p className={styles.LoginheroSubtitle}></p>
       </div>
 
       <div className={styles.LoginContainer}>

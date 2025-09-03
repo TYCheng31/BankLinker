@@ -317,9 +317,39 @@ const Dashboard = () => {
   };
 
   const UpdateEsunbank = async (bank) => {
-    // TODO: ESUN 的更新流程
-    setBanner("ESUN Bank is not finished yet");
-    setTimeout(() => setBanner(null), 2000);
+    try {
+      setLoading(true);
+      const { data: bankData } = await axios.get('/bank-connections/esun_bank');
+      const account = bankData.bankaccount;
+      const password = bankData.bankpassword;
+      const id = bankData.bankid;
+      const provider = "ESUN_BANK";
+
+      const res = await axios.post('/bank-connections/update_cash', { account, password, id, provider}, { headers: { "Content-Type": "application/json" } });
+      setMainAccount(res.data.account_name);
+      setAvailableBalance(res.data.available_balance);
+
+      const nowIso = new Date().toISOString();
+      setLastUpdated(nowIso);
+
+      // 只更新被點擊的那一筆
+      setBanks((prev) =>
+        prev.map((x) =>
+          x.bankid === id && String(x.provider).toUpperCase() === provider
+            ? { ...x, account, cash: res.data.available_balance, last_update: nowIso }
+            : x
+        )
+      );
+
+    } catch (err) {
+      const errMsg =
+        err?.response?.data?.detail
+          ? JSON.stringify(err.response.data.detail)
+          : err?.response?.data?.error || err.message;
+      alert(`Failed to update cash: ${errMsg}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const UpdateCathaybank = async (bank) => {

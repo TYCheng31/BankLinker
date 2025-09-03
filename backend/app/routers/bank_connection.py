@@ -72,6 +72,27 @@ def list_bank_connections(
     )
     return rows
 
+
+BASE_DIR = "/home/ty/Desktop/Property/bankhub/backend/app/mypython"
+
+PROVIDER_SCRIPT_MAP = {
+    "LINE_BANK": "FetchLinebank.py",
+    "ESUN_BANK": "FetchEsunbank.py",
+    # 之後要擴充就在這裡加
+}
+
+def _resolve_script(provider: str) -> str:
+    if not provider:
+        raise HTTPException(status_code=400, detail="provider is required")
+    key = provider.strip().upper()
+    script_name = PROVIDER_SCRIPT_MAP.get(key)
+    if not script_name:
+        raise HTTPException(status_code=400, detail=f"Unsupported provider: {provider}")
+    script_path = os.path.join(BASE_DIR, script_name)
+    if not os.path.isfile(script_path):
+        raise HTTPException(status_code=500, detail=f"Script not found: {script_path}")
+    return script_path
+
 class UpdateCashIn(BaseModel):
     account: str
     password: str
@@ -89,7 +110,7 @@ async def update_cash(
     bank_conn_id = payload.id
     provider = payload.provider
 
-    script_path = '/home/ty/Desktop/Property/bankhub/backend/app/mypython/test.py'
+    script_path = _resolve_script(provider)
 
 
     result = subprocess.run(
@@ -122,7 +143,6 @@ async def update_cash(
             db.commit()
             db.refresh(conn)
 
-
             return {
                 "message": "Cash updated successfully",
                 "account_name": account_name,
@@ -147,6 +167,26 @@ def get_line_bank_account(db: Session = Depends(get_db), user: User = Depends(ge
     bank_connection = db.query(DBBankConnection).filter(
         DBBankConnection.user_id == user.id,
         DBBankConnection.provider == "LINE_BANK"
+    ).first()
+
+    if not bank_connection:
+        raise HTTPException(status_code=404, detail="No bank connection found for LINE_BANK")
+
+    # 返回銀行帳號的資料
+    return {
+        "bankaccount": bank_connection.bankaccount,
+        "bankid": bank_connection.bankid,
+        "bankpassword": bank_connection.bankpassword
+    }
+
+@router.get("/esun_bank", response_model=dict)
+def get_line_bank_account(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """
+    查詢目前登入者在 provider=LINE_BANK 下的銀行帳號資料。
+    """
+    bank_connection = db.query(DBBankConnection).filter(
+        DBBankConnection.user_id == user.id,
+        DBBankConnection.provider == "ESUN_BANK"
     ).first()
 
     if not bank_connection:
