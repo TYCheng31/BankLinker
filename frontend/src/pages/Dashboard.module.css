@@ -206,6 +206,7 @@ button {
   justify-content: space-between;     /* 左右分散 */
   gap: 16px;
   width: 100%;
+  height: 100px;
   box-sizing: border-box;
   padding: 12px 14px;                 /* 給一點內距讓內容不貼邊 */
   border: 1px solid var(--border);
@@ -241,32 +242,47 @@ button {
 }
 
 .bankName {
-  font-weight: 700;
+  font-weight: 300;
+  font-size: 23px;
   letter-spacing: 0.3px;
   color: var(--text);
 }
 
 .bankMeta {
-  font-size: 12px;
+  font-size: 20px;
   color: var(--muted);
   margin-top: 2px;
 }
 
-/* 右側：統計列（改為貼右側、同行顯示） */
 .statRow {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;                    /* 太擠時自動換行 */
-  margin: 0;                          /* 重要：原本有 margin-top，拿掉 */
-  margin-left: auto;                  /* 把整個 statRow 推到最右 */
+  justify-content: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 0;
   color: var(--text);
 }
 
-/* chip 不要換行，視覺更穩定 */
+.balancePart {
+  margin-right: 300px;
+}
+
 .chip {
   white-space: nowrap;
+  min-width: 200px;
+  text-align: left;
+  font-size: 25px; /* 增加字體大小 */
 }
+
+.chiptime {
+  white-space: nowrap;
+  min-width: 250px;
+  text-align: left;
+  color: var(--muted);
+  font-size: 15px; /* 增加字體大小 */
+}
+
+
 
 /* Modal */
 .modal {
@@ -379,9 +395,9 @@ button {
   bottom: max(16px, env(safe-area-inset-bottom)); /* 距底 16px（含 iPhone 安全區） */
   margin-left: auto;                               /* 水平推到最右 */
   margin-right: max(16px, env(safe-area-inset-right));
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;                              /* 圓形 */
+  width: 70px;
+  height: 70px;
+  border-radius: 80%;                              /* 圓形 */
   display: grid;
   place-items: center;
   z-index: 20;                                     /* 蓋過內容 */
@@ -390,12 +406,17 @@ button {
 
 
 .screen[data-theme="dark"] .fab {
-  background: linear-gradient(180deg, #1f222a, #121419);
+  background-color: #005903;
+  color: var(--text);
+}
+
+.screen[data-theme="light"] .fab {
+  background-color: #005903;
   color: var(--text);
 }
 
 .fab:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.5);
 }
 
 /* Toast */
@@ -572,7 +593,7 @@ button {
 }
 
 .deleteIcon {
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
 }
 

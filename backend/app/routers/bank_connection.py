@@ -70,6 +70,10 @@ def list_bank_connections(
         .filter(DBBankConnection.user_id == user.id)
         .all()
     )
+
+    for row in rows:
+        print(f"bccash: {row.BcCash}, bcmainaccount: {row.BcMainaccount}")
+    
     return rows
 
 
@@ -139,6 +143,9 @@ async def update_cash(
                 raise HTTPException(status_code=404, detail="Bank connection not found")
 
             conn.last_update = datetime.now(timezone.utc) 
+            conn.BcCash = int(available_balance.replace(",", ""))  # 去掉千分位後轉整數
+            conn.BcMainaccount = str(account_name)
+
             # conn.cash = available_balance
             db.commit()
             db.refresh(conn)

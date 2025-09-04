@@ -86,11 +86,12 @@ try:
     available_display = f"NT${m.group(1)}"
     available_number = m.group(1).replace(",", "")
     #print("可用餘額：", available_display)
+    available_number = available_display.replace("NT$", "").strip()
 
     # 返回 JSON 格式的結果
     result = {
         "account_name": main_account,
-        "available_balance": available_display
+        "available_balance": available_number
     }
 
     # 輸出結果

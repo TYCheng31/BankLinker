@@ -18,5 +18,9 @@ class BankConnectionOut(BaseModel):
     last_update: datetime
     create_date: datetime
 
+    BcCash: Optional[int] = None
+    BcMainaccount: Optional[str] = None
+
+
     class Config:
         from_attributes = True

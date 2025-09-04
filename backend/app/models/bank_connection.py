@@ -22,4 +22,7 @@ class BankConnection(Base):
     last_update = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     create_date = Column(DateTime(timezone=True), server_default=func.now())
 
+    BcCash = Column("bccash", Integer, nullable=True)  # 使用小寫名稱
+    BcMainaccount = Column("bcmainaccount", String(255), nullable=True)  # 同樣使用小寫名稱
+
     user = relationship("User", back_populates="bank_connections")

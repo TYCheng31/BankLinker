@@ -11,7 +11,7 @@ const ConfirmDeleteModal = ({ isOpen, onCancel, onConfirm, bank }) => {
         <h2 className={styles.modalTitle}>Delete Bank Connection</h2>
         <p className={styles.msg}>
           {bank?.provider?.replaceAll('_',' ')}
-          {bank?.bankid ? `（ID: ${bank.bankid}）` : ''}will be deleted forever
+          {bank?.bankid ? `（Bank Account: ${bank.BcMainaccount}）` : ''}will be deleted forever
         </p>
         <div className={styles.formActions}>
           <button type="button" className={styles.primary} onClick={onConfirm}>

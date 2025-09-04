@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./Dashboard.module.css";
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
-const versionNumber = "v1.1.1 250902";
+const versionNumber = "v1.2.1 250904";
 
 function normalizeConnections(arr) {
   return (arr || []).map((b) => ({
@@ -15,6 +15,8 @@ function normalizeConnections(arr) {
     bankid: b.bankid ?? "",
     last_update: b.last_update ?? null,
     account_name: b.account_name ?? "",
+    BcCash: b.BcCash ?? null,
+    BcMainaccount: b.BcMainaccount ?? null,
   }));
 }
 
@@ -63,7 +65,7 @@ function formatCurrencyTWD(val) {
   const n = Number(val);
   if (!isFinite(n)) return String(val ?? "");
   try {
-    return new Intl.NumberFormat("zh-TW", { style: "currency", currency: "TWD", maximumFractionDigits: 0 }).format(n);
+    return new Intl.NumberFormat("zh-TW", { style: "decimal", maximumFractionDigits: 0 }).format(n);
   } catch {
     return String(val);
   }
@@ -83,12 +85,16 @@ function formatTimeLocalTPE(ts) {
       hour12: false,
     })
       .formatToParts(d)
-      .reduce((acc, p) => ((acc[p.type] = p.value), acc), {});
+      .reduce((acc, p) => {
+        acc[p.type] = p.value; 
+        return acc;           
+      }, {}); 
     return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
   } catch {
     return String(ts ?? "");
   }
 }
+
 
 (function test_formatters() {
   const c = formatCurrencyTWD(12345);
@@ -118,9 +124,11 @@ function labelOf(p) {
   const key = String(p || "").toUpperCase();
   return PROVIDER_LABELS[key] || String(p || "").toUpperCase();
 }
+
 /* =======================
    Component
    ======================= */
+   
 const Dashboard = () => {
   const navigate = useNavigate();
 
@@ -129,12 +137,9 @@ const Dashboard = () => {
   const [banks, setBanks] = useState([]);
   const [showAddContainer, setShowAddContainer] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [mainAccount, setMainAccount] = useState("");
-  const [availableBalance, setAvailableBalance] = useState("");
   const [userAccount, setUserAccount] = useState("");
   const [userEmail, setUserEmail] = useState("");
-  const [theme, setTheme] = useState("dark");       // 'dark' | 'light'
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const [theme, setTheme] = useState("dark");      
   const [banner, setBanner] = useState(null);
   const [selectedBank, setSelectedBank] = useState(null); // 用來儲存當前選擇的銀行資料
   const [isModalOpen, setIsModalOpen] = useState(false); // 控制模態框的顯示與隱藏
@@ -162,6 +167,7 @@ const Dashboard = () => {
     const fetchBanks = async () => {
       try {
         const response = await axios.get("/bank-connections");
+        console.log(response.data);
         setBanks(normalizeConnections(response.data));
       } catch (err) {
         console.error("Error fetching bank connections:", err);
@@ -221,7 +227,6 @@ const Dashboard = () => {
           bankpassword: "",
           bankid: created.bankid ?? "",
           account_name: res.data.account_name,
-
         },
       ]);
     } catch (err) {
@@ -293,17 +298,14 @@ const Dashboard = () => {
       const provider = "LINE_BANK";
 
       const res = await axios.post('/bank-connections/update_cash', { account, password, id, provider}, { headers: { "Content-Type": "application/json" } });
-      setMainAccount(res.data.account_name);
-      setAvailableBalance(res.data.available_balance);
-
+      const mainAccount = res.data.account_name
       const nowIso = new Date().toISOString();
-      setLastUpdated(nowIso);
 
       // 只更新被點擊的那一筆
       setBanks((prev) =>
         prev.map((x) =>
           x.bankid === id && String(x.provider).toUpperCase() === provider
-            ? { ...x, account, cash: res.data.available_balance, last_update: nowIso }
+            ? { ...x, account, cash: res.data.available_balance, last_update: nowIso, mainAccount }
             : x
         )
       );
@@ -329,17 +331,14 @@ const Dashboard = () => {
       const provider = "ESUN_BANK";
 
       const res = await axios.post('/bank-connections/update_cash', { account, password, id, provider}, { headers: { "Content-Type": "application/json" } });
-      setMainAccount(res.data.account_name);
-      setAvailableBalance(res.data.available_balance);
-
+      const mainAccount = res.data.account_name
       const nowIso = new Date().toISOString();
-      setLastUpdated(nowIso);
 
       // 只更新被點擊的那一筆
       setBanks((prev) =>
         prev.map((x) =>
           x.bankid === id && String(x.provider).toUpperCase() === provider
-            ? { ...x, account, cash: res.data.available_balance, last_update: nowIso }
+            ? { ...x, account, cash: res.data.available_balance, last_update: nowIso, mainAccount }
             : x
         )
       );
@@ -398,18 +397,18 @@ const Dashboard = () => {
         <div className={styles.left}>
           <div className={styles.sidebarGroupTitle}>General</div>
           <button onClick={() => navigate("/page1")} className={styles.navBtn}>
-            🏠 Dashboard
+            Dashboard
           </button>
           <button onClick={() => navigate("/page2")} className={styles.navBtn}>
-            📄 Reports
+            Reports
           </button>
 
           <div className={styles.sidebarGroupTitle}>Banks</div>
           <button onClick={() => navigate("/page3")} className={styles.navBtn}>
-            💳 Connections
+            Connections
           </button>
           <button onClick={() => setShowAddContainer(true)} className={styles.navBtn}>
-            ➕ Add Connection
+            Add Connection
           </button>
 
           <div className={styles.sidebarGroupTitle}>System</div>
@@ -429,7 +428,7 @@ const Dashboard = () => {
               <span className={styles.switchText}>{theme === "light" ? "Light" : "Dark"}</span>
             </label>
             <button onClick={handleLogout} className={styles.navBtn}>
-              ⏏ Logout
+              Logout
             </button>
         </div>
 
@@ -456,14 +455,8 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {banks.length === 0 ? (
-                <div className={styles.emptyTip}>You don&apos;t have any connection</div>
-              ) : (
-                banks.map((b, idx) => (
-                  <div
-                    key={b.id ?? `${b.provider}-${idx}`}
-                    className={styles.bankCard}
-                  >
+              {banks.length === 0 ? (<div className={styles.emptyTip}>You don&apos;t have any connection</div>) : (banks.map((b, idx) => (
+                  <div key={b.id ?? `${b.provider}-${idx}`} className={styles.bankCard}>
                     <div className={styles.bankHeader}>
                       <div className={styles.bankLogo}>
                         {getBankLogoSrc(b.provider) ? (
@@ -478,20 +471,27 @@ const Dashboard = () => {
                           <span className={styles.bankLogoFallback}>{getProviderInitial(b.provider)}</span>
                         )}
                       </div>
+
                       <div>
                         <div className={styles.bankName}>{labelOf(b.provider)}</div>
-                        <div className={styles.bankMeta}>
-                          {maskAccount(mainAccount)}
+                        <div className={styles.bankMeta}>{b.BcMainaccount}</div>
+                      </div>
+
+                    </div>
+
+                    <div className={styles.balancePart}>
+                      <div>
+                        <div className={styles.chip}>
+                          NT$ {b.BcCash ? formatCurrencyTWD(b.BcCash) : " ---"}
+                        </div>
+                        
+                        <div className={styles.chiptime}>
+                          Last Update {b.last_update ? formatTimeLocalTPE(b.last_update) : "NO DATA"}
                         </div>
                       </div>
                     </div>
+
                     <div className={styles.statRow}>
-                      <span className={styles.chip}>
-                        Balance: {b.cash ? formatCurrencyTWD(b.cash) : "—"}
-                      </span>
-                      <span className={styles.chip}>
-                        Updated: {b.last_update ? formatTimeLocalTPE(b.last_update) : "—"}
-                      </span>
 
                       <button
                         className={styles.deleteBtn}
