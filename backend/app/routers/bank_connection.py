@@ -16,6 +16,10 @@ import json
 
 from pydantic import BaseModel
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 router = APIRouter(prefix="/bank-connections", tags=["bank_connections"])
 
 @router.post("/", response_model=BankConnectionOut, status_code=status.HTTP_201_CREATED)
@@ -71,8 +75,8 @@ def list_bank_connections(
         .all()
     )
 
-    for row in rows:
-        print(f"bccash: {row.BcCash}, bcmainaccount: {row.BcMainaccount}")
+    #for row in rows:
+        #print(f"bccash: {row.BcCash}, bcmainaccount: {row.BcMainaccount}")
     
     return rows
 
@@ -230,3 +234,46 @@ async def delete_bank_connection(provider: str, bankid: str, db: Session = Depen
 
 
 
+class EmailRequest(BaseModel):
+    to: str
+    subject: str
+    body: str
+
+# 發送 Email 函數
+def send_email(to: str, subject: str, body: str):
+    from_email = "xiaochiprojectuse@gmail.com"  # 你的郵箱
+    from_password = "chengxiaochi0331"  # 你的郵箱密碼
+
+    # 設定 SMTP 伺服器
+    smtp_server = "smtp.gmail.com"
+    smtp_port = 587
+
+    # 建立一封郵件
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to
+    msg['Subject'] = subject
+
+    # 郵件內容
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        # 連接到 Gmail 的 SMTP 伺服器
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()  # 開啟 TLS 加密
+            server.login(from_email, from_password)  # 登錄郵箱
+            text = msg.as_string()  # 將郵件訊息轉為字串
+            server.sendmail(from_email, to, text)  # 發送郵件
+        return {"message": "Email sent successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {e}")
+
+
+@router.post("/SendEmail")
+async def send_email_api(email_request: EmailRequest):
+
+    try:
+        result = send_email(email_request.to, email_request.subject, email_request.body)
+        return {"message": "Email sent successfully!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")

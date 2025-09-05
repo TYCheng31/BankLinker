@@ -221,6 +221,12 @@ button {
   border-color: rgba(30, 255, 0, 0.22);
 }
 
+.bankCard[data-theme="dark"]:hover  {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(255, 255, 255, 0.35);
+  border-color: rgba(30, 255, 0, 0.22);
+}
+
 /* 左側：銀行圖 + 文字（維持橫向排列，但取消下邊距） */
 .bankHeader {
   display: flex;

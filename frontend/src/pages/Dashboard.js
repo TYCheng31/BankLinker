@@ -390,6 +390,20 @@ const Dashboard = () => {
     }
   };
 
+  function sendEmail() {
+    axios.post('/bank-connections/SendEmail', {
+      to: 'littleyunkevin@gmail.com',
+      subject: '報告郵件',
+      body: '這是你的報告。',
+    })
+    .then(response => {
+      console.log('Email 發送成功', response);
+    })
+    .catch(error => {
+      console.error('發送 email 失敗', error);
+    });
+  }
+
   return (
     <div className={styles.screen} data-theme={theme}>
       <div className={styles.frame}>
@@ -437,159 +451,166 @@ const Dashboard = () => {
 
           <main className={styles.centerPanel}>
             <Routes>
-              <Route path="/home" element={<div>Welcome to the Dashboard</div>} />
-              <Route path="/reports" element={<Reports />} />
+              <Route path="/home" element={
+                <div>
+                  <header className={styles.userBar}>
+                    <div className={styles.userLabel}>
+                      <span className={styles.userAvatar} />
+                      Welcome !!! {userAccount} {userEmail && `${userEmail}`}
+                    </div>
+                    {/*之後要用來一次更新全部bankCard     把更新function全部綁在這個按鈕 */}
+                    <button className={styles.userbutton} /*onClick={UpdateLinebank}*/ disabled={loading}>
+                      Update All Bank
+                    </button>
+                  </header>
+                  {banner && <div className={styles.toast}>{banner}</div>}
+
+                  {/*center/ */}
+                  <main className={styles.centerPanel}>
+                    <section className={styles.bankGrid}>
+                      {loading && (
+                        <div className={styles.loadingOverlay}>
+                          <div className={styles.spinner}></div>
+                          <p>Connecting...</p>
+                        </div>
+                      )}
+
+                      {banks.length === 0 ? (<div className={styles.emptyTip}>You don&apos;t have any connection</div>) : (banks.map((b, idx) => (
+                          <div key={b.id ?? `${b.provider}-${idx}`} className={styles.bankCard}>
+                            <div className={styles.bankHeader}>
+                              <div className={styles.bankLogo}>
+                                {getBankLogoSrc(b.provider) ? (
+                                  <img
+                                    className={styles.bankLogoImg}
+                                    src={getBankLogoSrc(b.provider)}
+                                    alt={`${(b.provider || "").replaceAll("_", " ")} logo`}
+                                    loading="lazy"
+                                    decoding="async"
+                                  />
+                                ) : (
+                                  <span className={styles.bankLogoFallback}>{getProviderInitial(b.provider)}</span>
+                                )}
+                              </div>
+
+                              <div>
+                                <div className={styles.bankName}>{labelOf(b.provider)}</div>
+                                <div className={styles.bankMeta}>{b.BcMainaccount}</div>
+                              </div>
+
+                            </div>
+
+                            <div className={styles.balancePart}>
+                              <div>
+                                <div className={styles.chip}>
+                                  NT$ {b.BcCash ? formatCurrencyTWD(b.BcCash) : " ---"}
+                                </div>
+                                
+                                <div className={styles.chiptime}>
+                                  Last Update {b.last_update ? formatTimeLocalTPE(b.last_update) : "NO DATA"}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className={styles.statRow}>
+
+                              <button
+                                className={styles.deleteBtn}
+                                onClick={(e) => UpdateBankCash(b, e)}
+                              >
+                                <img
+                                  src="/logo/updateButton.png"  // 修改為你的圖片路徑
+                                  alt="Delete"
+                                  className={styles.deleteIcon}
+                                />
+                              </button>
+
+                              {/* Add Delete button */}
+                              <button
+                                className={styles.deleteBtn}
+                                onClick={(e) => {
+                                  e.stopPropagation(); // 防止觸發卡片的點擊事件
+                                  handleOpenModal(b);     
+                                }}
+                              >
+                                <img
+                                  src="/logo/deleteButton.png"  // 修改為你的圖片路徑
+                                  alt="Delete"
+                                  className={styles.deleteIcon}
+                                />
+                              </button>
+
+                            </div>
+                          </div>
+
+                        ))
+                      )}
+                    </section>
+                  </main>
+                    <ConfirmDeleteModal
+                      isOpen={isModalOpen}
+                      onCancel={handleCancelDelete}
+                      onConfirm={handleConfirmDelete}
+                      bank={selectedBank}
+                    />
+                    <button type="button" className={styles.fab} aria-label="Add Bank Connection" onClick={toggleAddContainer}>
+                      +
+                    </button>
+
+                  {showAddContainer && (
+                    <div className={styles.modal} onClick={toggleAddContainer}>
+                      <div className={styles.modalBody} onClick={(e) => e.stopPropagation()}>
+                        <h2 className={styles.modalTitle}>Bank Connection</h2>
+                        <form className={styles.form} onSubmit={handleSubmit}>
+                          <select name="provider" value={form.provider} onChange={handleChange} required>
+                            <option value="" disabled>
+                              Select Bank
+                            </option>
+                            <option value="CATHAY_BANK">CATHAY_BANK</option>
+                            <option value="ESUN_BANK">ESUN_BANK</option>
+                            <option value="LINE_BANK">LINE_BANK</option>
+                          </select>
+                          <input
+                            type="text"
+                            name="bank_id"
+                            value={form.bank_id}
+                            onChange={handleChange}
+                            placeholder="ID"
+                            required
+                          />
+                          <input
+                            type="text"
+                            name="account"
+                            value={form.account}
+                            onChange={handleChange}
+                            placeholder="Account"
+                          />
+                          <input
+                            type="password"
+                            name="password"
+                            value={form.password}
+                            onChange={handleChange}
+                            placeholder="Password"
+                          />
+                          <div className={styles.formActions}>
+                            <button type="submit" className={styles.primary}>
+                              Connect
+                            </button>
+                          </div>
+                        </form>
+                        {message && <p className={styles.msg}>{message}</p>}
+                      </div>
+                    </div>
+                  )} 
+                </div>}/>
+              <Route path="/reports" element={
+                <div>
+                  <button onClick={sendEmail}>發送 Email</button>
+                </div>
+              } />
             </Routes>
           </main>
 
-          <header className={styles.userBar}>
-            <div className={styles.userLabel}>
-              <span className={styles.userAvatar} />
-              Welcome !!! {userAccount} {userEmail && `${userEmail}`}
-            </div>
-            {/*之後要用來一次更新全部bankCard     把更新function全部綁在這個按鈕 */}
-            <button className={styles.userbutton} /*onClick={UpdateLinebank}*/ disabled={loading}>
-              Update All Bank
-            </button>
-          </header>
-          {banner && <div className={styles.toast}>{banner}</div>}
 
-          {/*center/ */}
-          <main className={styles.centerPanel}>
-            <section className={styles.bankGrid}>
-              {loading && (
-                <div className={styles.loadingOverlay}>
-                  <div className={styles.spinner}></div>
-                  <p>Connecting...</p>
-                </div>
-              )}
-
-              {banks.length === 0 ? (<div className={styles.emptyTip}>You don&apos;t have any connection</div>) : (banks.map((b, idx) => (
-                  <div key={b.id ?? `${b.provider}-${idx}`} className={styles.bankCard}>
-                    <div className={styles.bankHeader}>
-                      <div className={styles.bankLogo}>
-                        {getBankLogoSrc(b.provider) ? (
-                          <img
-                            className={styles.bankLogoImg}
-                            src={getBankLogoSrc(b.provider)}
-                            alt={`${(b.provider || "").replaceAll("_", " ")} logo`}
-                            loading="lazy"
-                            decoding="async"
-                          />
-                        ) : (
-                          <span className={styles.bankLogoFallback}>{getProviderInitial(b.provider)}</span>
-                        )}
-                      </div>
-
-                      <div>
-                        <div className={styles.bankName}>{labelOf(b.provider)}</div>
-                        <div className={styles.bankMeta}>{b.BcMainaccount}</div>
-                      </div>
-
-                    </div>
-
-                    <div className={styles.balancePart}>
-                      <div>
-                        <div className={styles.chip}>
-                          NT$ {b.BcCash ? formatCurrencyTWD(b.BcCash) : " ---"}
-                        </div>
-                        
-                        <div className={styles.chiptime}>
-                          Last Update {b.last_update ? formatTimeLocalTPE(b.last_update) : "NO DATA"}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className={styles.statRow}>
-
-                      <button
-                        className={styles.deleteBtn}
-                        onClick={(e) => UpdateBankCash(b, e)}
-                      >
-                        <img
-                          src="/logo/updateButton.png"  // 修改為你的圖片路徑
-                          alt="Delete"
-                          className={styles.deleteIcon}
-                        />
-                      </button>
-
-                      {/* Add Delete button */}
-                      <button
-                        className={styles.deleteBtn}
-                        onClick={(e) => {
-                          e.stopPropagation(); // 防止觸發卡片的點擊事件
-                          handleOpenModal(b);     
-                        }}
-                      >
-                        <img
-                          src="/logo/deleteButton.png"  // 修改為你的圖片路徑
-                          alt="Delete"
-                          className={styles.deleteIcon}
-                        />
-                      </button>
-
-                    </div>
-                  </div>
-
-                ))
-              )}
-            </section>
-          </main>
-            <ConfirmDeleteModal
-              isOpen={isModalOpen}
-              onCancel={handleCancelDelete}
-              onConfirm={handleConfirmDelete}
-              bank={selectedBank}
-            />
-            <button type="button" className={styles.fab} aria-label="Add Bank Connection" onClick={toggleAddContainer}>
-              +
-            </button>
-
-          {showAddContainer && (
-            <div className={styles.modal} onClick={toggleAddContainer}>
-              <div className={styles.modalBody} onClick={(e) => e.stopPropagation()}>
-                <h2 className={styles.modalTitle}>Bank Connection</h2>
-                <form className={styles.form} onSubmit={handleSubmit}>
-                  <select name="provider" value={form.provider} onChange={handleChange} required>
-                    <option value="" disabled>
-                      Select Bank
-                    </option>
-                    <option value="CATHAY_BANK">CATHAY_BANK</option>
-                    <option value="ESUN_BANK">ESUN_BANK</option>
-                    <option value="LINE_BANK">LINE_BANK</option>
-                  </select>
-                  <input
-                    type="text"
-                    name="bank_id"
-                    value={form.bank_id}
-                    onChange={handleChange}
-                    placeholder="ID"
-                    required
-                  />
-                  <input
-                    type="text"
-                    name="account"
-                    value={form.account}
-                    onChange={handleChange}
-                    placeholder="Account"
-                  />
-                  <input
-                    type="password"
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="Password"
-                  />
-                  <div className={styles.formActions}>
-                    <button type="submit" className={styles.primary}>
-                      Connect
-                    </button>
-                  </div>
-                </form>
-                {message && <p className={styles.msg}>{message}</p>}
-              </div>
-            </div>
-          )}
  
         </div>
 
