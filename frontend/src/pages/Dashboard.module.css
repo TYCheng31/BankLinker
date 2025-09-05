@@ -96,7 +96,7 @@ button {
 /* Sidebar */
 .sidebarGroupTitle {
   margin: 8px 6px;
-  font-size: 12px;
+  font-size: 18px;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -412,12 +412,12 @@ button {
 
 
 .screen[data-theme="dark"] .fab {
-  background-color: #005903;
+  background-color: #ffffff;
   color: var(--text);
 }
 
 .screen[data-theme="light"] .fab {
-  background-color: #005903;
+  background-color: #000000;
   color: var(--text);
 }
 

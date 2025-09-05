@@ -59,11 +59,11 @@ const Login = () => {
     <>
       <div className={styles.LoginpageTitle}>
         <h1 className={styles.LoginheroTitle}>Bank Linker</h1>
-        <p className={styles.LoginheroSubtitle}></p>
+        <p className={styles.LoginheroSubtitle}>Connect your bank account in a simple way.</p>
       </div>
 
       <div className={styles.LoginContainer}>
-        <h2>Log In</h2>
+        <h2>Sign In</h2>
         <form onSubmit={handleLogin}>
           <input
             type="email"

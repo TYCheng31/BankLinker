@@ -411,18 +411,41 @@ const Dashboard = () => {
         {/*left/ */}
         <div className={styles.left}>
           <div className={styles.sidebarGroupTitle}>General</div>
-          <button onClick={() => navigate("home")} className={styles.navBtn}>
-            Linker
+
+          <button onClick={() => navigate("")} className={styles.navBtn}>
+            <img
+              src="/logo/homeButton.png"  // 修改為你的圖片路徑
+              alt="Delete"
+              className={styles.deleteIcon}
+            />
+            HOME
           </button>
+
+          <button onClick={() => navigate("home")} className={styles.navBtn}>
+            <img
+              src="/logo/linkerButton.png"  // 修改為你的圖片路徑
+              alt="Delete"
+              className={styles.deleteIcon}
+            />
+            LINKER
+          </button>
+
           <button onClick={() => navigate("reports")} className={styles.navBtn}>
-            Setting
+            <img
+              src="/logo/settingButton.png"  // 修改為你的圖片路徑
+              alt="Delete"
+              className={styles.deleteIcon}
+            />
+            SETTING
           </button>
 
           <div className={styles.sidebarGroupTitle}>Banks</div>
-          <button onClick={() => navigate("/page3")} className={styles.navBtn}>
-            Connections
-          </button>
           <button onClick={() => setShowAddContainer(true)} className={styles.navBtn}>
+            <img
+              src="/logo/linkerButton.png"  // 修改為你的圖片路徑
+              alt="Delete"
+              className={styles.deleteIcon}
+            />
             Add Connection
           </button>
 
@@ -443,6 +466,11 @@ const Dashboard = () => {
               <span className={styles.switchText}>{theme === "light" ? "Light" : "Dark"}</span>
             </label>
             <button onClick={handleLogout} className={styles.navBtn}>
+              <img
+                src="/logo/logoutButton.png"  // 修改為你的圖片路徑
+                alt="Delete"
+                className={styles.deleteIcon}
+              />
               Logout
             </button>
         </div>
@@ -451,6 +479,20 @@ const Dashboard = () => {
 
           <main className={styles.centerPanel}>
             <Routes>
+              <Route path="" element={
+                <div>
+
+                  <div>
+                    You can click the Linker Button to connect your bank account.
+                  </div>
+
+                  <div>
+                    Click the setting button to setup the update time.
+                  </div>
+
+                </div>
+              }/>
+
               <Route path="/home" element={
                 <div>
                   <header className={styles.userBar}>
@@ -553,7 +595,11 @@ const Dashboard = () => {
                       bank={selectedBank}
                     />
                     <button type="button" className={styles.fab} aria-label="Add Bank Connection" onClick={toggleAddContainer}>
-                      +
+                      <img
+                        src="/logo/addbankButton.png"  // 修改為你的圖片路徑
+                        alt="Delete"
+                        className={styles.deleteIcon}
+                      />
                     </button>
 
                   {showAddContainer && (
