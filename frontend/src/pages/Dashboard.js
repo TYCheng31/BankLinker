@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Outlet} from "react-router-dom";
 import styles from "./Dashboard.module.css";
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import Reports from './Reports';
 
 const versionNumber = "v1.2.1 250904";
 
@@ -396,11 +397,11 @@ const Dashboard = () => {
         {/*left/ */}
         <div className={styles.left}>
           <div className={styles.sidebarGroupTitle}>General</div>
-          <button onClick={() => navigate("/page1")} className={styles.navBtn}>
-            Dashboard
+          <button onClick={() => navigate("home")} className={styles.navBtn}>
+            Linker
           </button>
-          <button onClick={() => navigate("/page2")} className={styles.navBtn}>
-            Reports
+          <button onClick={() => navigate("reports")} className={styles.navBtn}>
+            Setting
           </button>
 
           <div className={styles.sidebarGroupTitle}>Banks</div>
@@ -433,6 +434,14 @@ const Dashboard = () => {
         </div>
 
         <div className={styles.center}>
+
+          <main className={styles.centerPanel}>
+            <Routes>
+              <Route path="/home" element={<div>Welcome to the Dashboard</div>} />
+              <Route path="/reports" element={<Reports />} />
+            </Routes>
+          </main>
+
           <header className={styles.userBar}>
             <div className={styles.userLabel}>
               <span className={styles.userAvatar} />

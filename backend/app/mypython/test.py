@@ -9,9 +9,9 @@ import os
 import time
 
 # ======== 認證參數（建議用環境變數帶入，避免硬編碼） ========
-EsunId = os.getenv("ESUN_ID", "D123058213")
-EsunAccount = os.getenv("ESUN_ACCOUNT", "tycheng31")
-EsunPassword = os.getenv("ESUN_PASSWORD", "Nivekkevin31")
+ESUN_id = os.getenv("ESUN_ID", "D123058213")
+ESUNaccount = os.getenv("ESUN_ACCOUNT", "tycheng31")
+ESUNpassword = os.getenv("ESUN_PASSWORD", "Nivekkevin31")
 
 # 若你要在伺服器上跑可改為 True（headless）
 HEADLESS = False
@@ -33,24 +33,66 @@ chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
 driver = webdriver.Chrome(options=chrome_options)
 
-# 再保險一次：有些桌面環境/視窗管理器下 start-maximized 可能無效
-try:
-    driver.maximize_window()             # 盡可能把外部視窗拉滿
-except Exception:
-    # 若最大化不支援，退而求其次設定位置與尺寸
-    driver.set_window_position(0, 0)
-    driver.set_window_size(1920, 1080)   # 也可視需求調成 2560x1440 等
 
-# ======================== 登入流程 ========================
-driver.get("https://www.cathaybk.com.tw/MyBank/")  # 國泰網銀登入或帳戶頁
 
-for req in driver.requests:
-    if req.response and "/api/" in (req.url or ""):
-        ctype = (req.response.headers.get("Content-Type") or "").lower()
-        if "application/json" in ctype:
-            body = sw_decode(req.response.body, req.response.headers.get('Content-Encoding', 'identity'))
-            print("API:", req.url)
-            print(body.decode("utf-8", "ignore")[:1200])
+    # ======================== 登入流程 ========================
+driver.get("https://ebank.esunbank.com.tw/index.jsp")
+wait = WebDriverWait(driver, 120)
+
+    # 先切進 iframe1
+driver.switch_to.default_content()
+WebDriverWait(driver, 20).until(
+    EC.frame_to_be_available_and_switch_to_it((By.ID, "iframe1"))
+)
+
+    # 找到 custid 欄位並輸入
+cust_input = WebDriverWait(driver, 20).until(
+    EC.visibility_of_element_located((By.ID, "loginform:custid"))
+)
+cust_input.clear()
+cust_input.send_keys(ESUN_id)
+
+cust_input = WebDriverWait(driver, 20).until(
+    EC.visibility_of_element_located((By.ID, "loginform:name"))
+)
+cust_input.clear()
+cust_input.send_keys(ESUNaccount)
+
+cust_input = WebDriverWait(driver, 20).until(
+    EC.visibility_of_element_located((By.ID, "loginform:pxsswd"))
+)
+cust_input.clear()
+cust_input.send_keys(ESUNpassword)
+
+login_btn = WebDriverWait(driver, 20).until(
+    EC.element_to_be_clickable((By.ID, "loginform:linkCommand"))
+)
+login_btn.click()
+
+
+span_el = WebDriverWait(driver, 30).until(
+    EC.presence_of_element_located((By.ID, "_0"))
+)
+
+    # 取文字內容
+EsunAccount = span_el.text.strip()
+    #print("帳號：", EsunAccount)
+
+balance_td = WebDriverWait(driver, 30).until(
+    EC.presence_of_element_located((By.CSS_SELECTOR, "td.td_money"))
+)
+
+    # 取文字內容並去掉空白
+EsunCash = balance_td.text.strip()
+    #print("可用餘額：", EsunCash)
+
+
+logout_button = driver.find_element(By.CSS_SELECTOR, "a.log_out")  # 使用CSS選擇器定位
+logout_button.click()
+
+time.sleep(60)
+
+
 
 
 # ======================== 等待你關閉瀏覽器 ========================

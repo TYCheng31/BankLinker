@@ -3,7 +3,8 @@ import { Routes, Route, Navigate,  useLocation, Outlet } from 'react-router-dom'
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import axios from "axios";
+import Reports from "./pages/Reports";
+import Home from "./pages/Home";
 
 // 如果你使用的是 JWT，可以在這裡做「是否過期」的基本檢查
 function isTokenValid(token) {
@@ -49,7 +50,10 @@ export default function App() {
         </Route>
 
         <Route element={<RequireAuth />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />}>
+            <Route path="home" element={<Home />} />
+            <Route path="reports" element={<Reports />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<div>Not Found</div>} />

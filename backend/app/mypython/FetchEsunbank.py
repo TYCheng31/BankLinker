@@ -96,6 +96,9 @@ try:
     EsunCash = balance_td.text.strip()
     #print("可用餘額：", EsunCash)
 
+    logout_button = driver.find_element(By.CSS_SELECTOR, "a.log_out")  # 使用CSS選擇器定位
+    logout_button.click()
+
     result = {
         "account_name": EsunAccount,
         "available_balance": EsunCash
