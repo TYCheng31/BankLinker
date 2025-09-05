@@ -412,12 +412,12 @@ button {
 
 
 .screen[data-theme="dark"] .fab {
-  background-color: #ffffff;
+  background-color: #272727;
   color: var(--text);
 }
 
 .screen[data-theme="light"] .fab {
-  background-color: #000000;
+  background-color: #e2e2e2;
   color: var(--text);
 }
 

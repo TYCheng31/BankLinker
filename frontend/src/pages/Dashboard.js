@@ -442,11 +442,11 @@ const Dashboard = () => {
           <div className={styles.sidebarGroupTitle}>Banks</div>
           <button onClick={() => setShowAddContainer(true)} className={styles.navBtn}>
             <img
-              src="/logo/linkerButton.png"  // 修改為你的圖片路徑
+              src="/logo/addButton.png"  // 修改為你的圖片路徑
               alt="Delete"
               className={styles.deleteIcon}
             />
-            Add Connection
+            ADD BANK
           </button>
 
           <div className={styles.sidebarGroupTitle}>System</div>
