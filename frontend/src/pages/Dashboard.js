@@ -5,7 +5,7 @@ import styles from "./Dashboard.module.css";
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import Reports from './Reports';
 
-const versionNumber = "v1.2.1 250904";
+const versionNumber = "v1.2.2 250916";
 
 function normalizeConnections(arr) {
   return (arr || []).map((b) => ({
@@ -383,26 +383,15 @@ const Dashboard = () => {
 
     try {
       await fn(bank); // 有些函式需要 bank 物件，就把 bank 傳進去
+      window.location.reload();
     } catch (err) {
       console.error("Update error:", err);
       setBanner("更新失敗");
       setTimeout(() => setBanner(null), 2000);
     }
-  };
+    //刷新頁面
 
-  function sendEmail() {
-    axios.post('/bank-connections/SendEmail', {
-      to: 'littleyunkevin@gmail.com',
-      subject: '報告郵件',
-      body: '這是你的報告。',
-    })
-    .then(response => {
-      console.log('Email 發送成功', response);
-    })
-    .catch(error => {
-      console.error('發送 email 失敗', error);
-    });
-  }
+  };
 
   return (
     <div className={styles.screen} data-theme={theme}>
@@ -650,7 +639,7 @@ const Dashboard = () => {
                 </div>}/>
               <Route path="/reports" element={
                 <div>
-                  <button onClick={sendEmail}>發送 Email</button>
+                  <button >發送 Email</button>
                 </div>
               } />
             </Routes>

@@ -81,7 +81,7 @@ def list_bank_connections(
     return rows
 
 
-BASE_DIR = "/home/ty/Desktop/Property/bankhub/backend/app/mypython"
+BASE_DIR = "/home/kevin/Desktop/BankLinker/bankhub/backend/app/mypython"
 
 PROVIDER_SCRIPT_MAP = {
     "LINE_BANK": "FetchLinebank.py",
