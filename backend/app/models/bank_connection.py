@@ -13,7 +13,7 @@ class BankConnection(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    provider = Column(PGEnum('ESUN_BANK', 'CATHAY_BANK', 'LINE_BANK', name='bank_provider', create_type=False), nullable=False)
+    provider = Column(PGEnum('ESUN_BANK', 'CATHAY_BANK', 'LINE_BANK', 'CH_BANK', name='bank_provider', create_type=False), nullable=False)
     
     bankaccount = Column(String, nullable=False)
     bankid = Column(String, nullable=False)
@@ -22,7 +22,9 @@ class BankConnection(Base):
     last_update = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     create_date = Column(DateTime(timezone=True), server_default=func.now())
 
-    BcCash = Column("bccash", Integer, nullable=True)  # 使用小寫名稱
-    BcMainaccount = Column("bcmainaccount", String(255), nullable=True)  # 同樣使用小寫名稱
+    BcCash = Column("bccash", Integer, nullable=True)  
+    BcStock = Column("bcstock", Integer, nullable=True)
+
+    BcMainaccount = Column("bcmainaccount", String(255), nullable=True) 
 
     user = relationship("User", back_populates="bank_connections")

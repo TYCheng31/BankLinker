@@ -20,6 +20,7 @@ class BankConnectionOut(BaseModel):
 
     BcCash: Optional[int] = None
     BcMainaccount: Optional[str] = None
+    BcStock: Optional[int] = None
 
 
     class Config:

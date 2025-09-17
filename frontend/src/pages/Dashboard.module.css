@@ -269,20 +269,16 @@ button {
   color: var(--text);
 }
 
-.balancePart {
-  margin-right: 300px;
-}
-
 .chip {
   white-space: nowrap;
-  min-width: 200px;
+  min-width: 100px;
   text-align: left;
-  font-size: 25px; /* 增加字體大小 */
+  font-size: 20px; /* 增加字體大小 */
 }
 
 .chiptime {
   white-space: nowrap;
-  min-width: 250px;
+  min-width: 100px;
   text-align: left;
   color: var(--muted);
   font-size: 15px; /* 增加字體大小 */

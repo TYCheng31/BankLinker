@@ -73,24 +73,42 @@ login_btn.click()
 span_el = WebDriverWait(driver, 30).until(
     EC.presence_of_element_located((By.ID, "_0"))
 )
-
-    # 取文字內容
 EsunAccount = span_el.text.strip()
-    #print("帳號：", EsunAccount)
+print("ESUNAccount：", EsunAccount)
 
-balance_td = WebDriverWait(driver, 30).until(
-    EC.presence_of_element_located((By.CSS_SELECTOR, "td.td_money"))
+
+personal_balance_sheet = WebDriverWait(driver, 20).until(
+    EC.presence_of_element_located((By.XPATH, "//a[text()='個人資產負債表']"))
+)
+driver.execute_script("arguments[0].click();", personal_balance_sheet)
+
+balance_td = WebDriverWait(driver, 20).until(
+    EC.presence_of_element_located((By.ID, "fms01010a:twTd2"))
 )
 
-    # 取文字內容並去掉空白
-EsunCash = balance_td.text.strip()
-    #print("可用餘額：", EsunCash)
+# 取得文本並去掉逗號
+balance_text = balance_td.text.strip().replace(",", "")
 
+# 將文本轉換為數字
+balance_value = int(balance_text)
+
+print("ESUNCash:", balance_value)
+
+balance_td = WebDriverWait(driver, 20).until(
+    EC.presence_of_element_located((By.ID, "fms01010a:stockTd2"))
+)
+
+# 取得文本並去掉逗號
+balance_text = balance_td.text.strip().replace(",", "")
+
+# 將文本轉換為數字
+balance_value = int(balance_text)
+
+print("ESUNStock:", balance_value)
 
 logout_button = driver.find_element(By.CSS_SELECTOR, "a.log_out")  # 使用CSS選擇器定位
 logout_button.click()
 
-time.sleep(60)
 
 
 

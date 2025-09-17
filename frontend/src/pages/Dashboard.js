@@ -5,7 +5,7 @@ import styles from "./Dashboard.module.css";
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import Reports from './Reports';
 
-const versionNumber = "v1.2.2 250916";
+const versionNumber = "v1.3.0 250917";
 
 function normalizeConnections(arr) {
   return (arr || []).map((b) => ({
@@ -18,6 +18,7 @@ function normalizeConnections(arr) {
     account_name: b.account_name ?? "",
     BcCash: b.BcCash ?? null,
     BcMainaccount: b.BcMainaccount ?? null,
+    BcStock: b.BcStock ?? null
   }));
 }
 
@@ -108,6 +109,7 @@ const BANK_LOGOS = {
   LINE_BANK: "/logo/LINEBANK.png",
   CATHAY_BANK: "/logo/CATHAYBANK.png",
   ESUN_BANK: "/logo/ESUNBANK.png",
+  CH_BANK: "/logo/CHBANK.png"
 };
 
 function getBankLogoSrc(provider) {
@@ -117,8 +119,9 @@ function getBankLogoSrc(provider) {
 
 const PROVIDER_LABELS = {
   LINE_BANK: "LINE Bank",
-  CATHAY_BANK: "Cathay Bank",
+  CATHAY_BANK: "CATHAY Bank",
   ESUN_BANK: "ESUN Bank",
+  CH_BANK: "CH Bank"
 };
 
 function labelOf(p) {
@@ -144,6 +147,19 @@ const Dashboard = () => {
   const [banner, setBanner] = useState(null);
   const [selectedBank, setSelectedBank] = useState(null); // 用來儲存當前選擇的銀行資料
   const [isModalOpen, setIsModalOpen] = useState(false); // 控制模態框的顯示與隱藏
+  const [totalAssets, setTotalAssets] = useState(0);//記錄所有財產
+
+
+  const calculateTotalAssets = () => {
+    const total = banks.reduce((sum, bank) => {
+      // 計算所有 bankcard 上的現金 (BcCash) 和 股票 (BcStock)
+      const cash = bank.BcCash || 0;  // 如果沒有 BcCash 就視為 0
+      const stock = bank.BcStock || 0; // 如果沒有 BcStock 就視為 0
+      return sum + cash + stock;  // 累加現金和股票
+    }, 0);
+
+    setTotalAssets(total);  // 更新總財產
+  };
 
   useEffect(() => {
     const token = sessionStorage.getItem("access_token");
@@ -168,7 +184,7 @@ const Dashboard = () => {
     const fetchBanks = async () => {
       try {
         const response = await axios.get("/bank-connections");
-        console.log(response.data);
+        console.log("aaaa",response.data);
         setBanks(normalizeConnections(response.data));
       } catch (err) {
         console.error("Error fetching bank connections:", err);
@@ -195,6 +211,12 @@ const Dashboard = () => {
       localStorage.setItem("theme", theme);
     } catch {}
   }, [theme]);
+
+  useEffect(() => {
+    // 每次 banks 更新時計算總財產
+    calculateTotalAssets();
+  }, [banks]);  // 依賴於 banks，當 banks 更新時重新計算
+
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -269,7 +291,6 @@ const Dashboard = () => {
 
       await axios.delete(`/bank-connections/${encodedProvider}/${encodedBankId}`);
 
-      // 只刪除同一個 provider + bankid 的那一筆
       setBanks((prev) => prev.filter(x => !(x.bankid === bankid && x.provider === provider)));
 
       setBanner("Bank connection deleted.");
@@ -333,13 +354,15 @@ const Dashboard = () => {
 
       const res = await axios.post('/bank-connections/update_cash', { account, password, id, provider}, { headers: { "Content-Type": "application/json" } });
       const mainAccount = res.data.account_name
+      const stock = res.data.stock
+      console.log(stock)
       const nowIso = new Date().toISOString();
 
       // 只更新被點擊的那一筆
       setBanks((prev) =>
         prev.map((x) =>
           x.bankid === id && String(x.provider).toUpperCase() === provider
-            ? { ...x, account, cash: res.data.available_balance, last_update: nowIso, mainAccount }
+            ? { ...x, account, cash: res.data.available_balance, last_update: nowIso, mainAccount, stock }
             : x
         )
       );
@@ -488,7 +511,14 @@ const Dashboard = () => {
                     <div className={styles.userLabel}>
                       <span className={styles.userAvatar} />
                       Welcome !!! {userAccount} {userEmail && `${userEmail}`}
+                      <div >
+                        <strong>Total Assets: </strong>
+                        NT$ {formatCurrencyTWD(totalAssets)} 
+                      </div>
                     </div>
+
+
+
                     {/*之後要用來一次更新全部bankCard     把更新function全部綁在這個按鈕 */}
                     <button className={styles.userbutton} /*onClick={UpdateLinebank}*/ disabled={loading}>
                       Update All Bank
@@ -530,16 +560,16 @@ const Dashboard = () => {
 
                             </div>
 
-                            <div className={styles.balancePart}>
-                              <div>
-                                <div className={styles.chip}>
-                                  NT$ {b.BcCash ? formatCurrencyTWD(b.BcCash) : " ---"}
-                                </div>
-                                
-                                <div className={styles.chiptime}>
-                                  Last Update {b.last_update ? formatTimeLocalTPE(b.last_update) : "NO DATA"}
-                                </div>
-                              </div>
+                            <div className={styles.chip}>
+                              Cash NT$ {b.BcCash ? formatCurrencyTWD(b.BcCash) : " ---"}
+                            </div>   
+
+                            <div className={styles.chip}>    
+                              Stock NT$ {b.BcStock !== null && b.BcStock !== undefined ? formatCurrencyTWD(b.BcStock) : "---"}
+                            </div> 
+
+                            <div className={styles.chiptime}>
+                              Last Update {b.last_update ? formatTimeLocalTPE(b.last_update) : "NO DATA"}
                             </div>
 
                             <div className={styles.statRow}>
@@ -603,6 +633,7 @@ const Dashboard = () => {
                             <option value="CATHAY_BANK">CATHAY_BANK</option>
                             <option value="ESUN_BANK">ESUN_BANK</option>
                             <option value="LINE_BANK">LINE_BANK</option>
+                            <option value="CH_BANK">CH_BANK</option>
                           </select>
                           <input
                             type="text"

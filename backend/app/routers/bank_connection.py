@@ -76,7 +76,7 @@ def list_bank_connections(
     )
 
     #for row in rows:
-        #print(f"bccash: {row.BcCash}, bcmainaccount: {row.BcMainaccount}")
+        #print(f"bccash: {row.BcCash}, bcmainaccount: {row.BcMainaccount}, bcstock: {row.BcStock}")
     
     return rows
 
@@ -120,7 +120,6 @@ async def update_cash(
 
     script_path = _resolve_script(provider)
 
-
     result = subprocess.run(
         ['python3', script_path, account, password, bank_conn_id],
         capture_output=True, text=True
@@ -133,6 +132,19 @@ async def update_cash(
 
             account_name = result_data.get("account_name")
             available_balance = result_data.get("available_balance")
+            stock = result_data.get('stock') if provider == "ESUN_BANK" else 0
+            #print(stock)
+            # 確保 available_balance 是字串並可以進行 replace() 操作
+            if isinstance(available_balance, str):
+                if available_balance.replace(",", "").isdigit():
+                    available_balance = int(available_balance.replace(",", ""))
+                else:
+                    raise HTTPException(status_code=400, detail="無效的可用餘額格式")
+            elif isinstance(available_balance, int):
+                # 如果 available_balance 已經是整數，則直接使用它
+                available_balance = available_balance
+            else:
+                raise HTTPException(status_code=400, detail="無效的可用餘額格式")
 
             conn = (
                 db.query(DBBankConnection)
@@ -144,26 +156,34 @@ async def update_cash(
                 .one_or_none()
             )
             if not conn:
-                raise HTTPException(status_code=404, detail="Bank connection not found")
+                raise HTTPException(status_code=404, detail="找不到該銀行連接")
 
             conn.last_update = datetime.now(timezone.utc) 
-            conn.BcCash = int(available_balance.replace(",", ""))  # 去掉千分位後轉整數
+            conn.BcCash = available_balance  # 使用有效的可用餘額
             conn.BcMainaccount = str(account_name)
+            conn.BcStock = int(stock) if provider == "ESUN_BANK" else 0
 
-            # conn.cash = available_balance
             db.commit()
             db.refresh(conn)
 
-            return {
-                "message": "Cash updated successfully",
+            response = {
+                "message": "現金更新成功",
                 "account_name": account_name,
                 "available_balance": available_balance,
             }
+            if stock is not None:
+                response["stock"] = stock
+
+            return response
 
         except json.JSONDecodeError:
-            raise HTTPException(status_code=500, detail="Failed to parse the response from the script")
+            raise HTTPException(status_code=500, detail="解析腳本回應失敗")
+        except ValueError as ve:
+            raise HTTPException(status_code=400, detail=str(ve))
     else:
         raise HTTPException(status_code=500, detail=result.stderr)
+
+
 
 
 
