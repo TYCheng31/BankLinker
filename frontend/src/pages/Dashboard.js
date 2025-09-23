@@ -3,135 +3,9 @@ import axios from "axios";
 import { Routes, Route, useNavigate, Outlet} from "react-router-dom";
 import styles from "./Dashboard.module.css";
 import ConfirmDeleteModal from './ConfirmDeleteModal';
-import Reports from './Reports';
+import {normalizeConnections, maskAccount, getProviderInitial, formatTime, formatCurrencyTWD, formatTimeLocalTPE, BANK_LOGOS, getBankLogoSrc, PROVIDER_LABELS, labelOf} from '../utils/utils';
 
-const versionNumber = "v1.3.0 250917";
-
-function normalizeConnections(arr) {
-  return (arr || []).map((b) => ({
-    id: b.id ?? b.bankid ?? undefined,
-    provider: b.provider ?? "",
-    bankaccount: b.bankaccount ?? "",
-    bankpassword: b.bankpassword ?? "",
-    bankid: b.bankid ?? "",
-    last_update: b.last_update ?? null,
-    account_name: b.account_name ?? "",
-    BcCash: b.BcCash ?? null,
-    BcMainaccount: b.BcMainaccount ?? null,
-    BcStock: b.BcStock ?? null
-  }));
-}
-
-(function test_normalizeConnections() {
-  const a = normalizeConnections([{ id: "1", provider: "ESUN_BANK", bankaccount: "A", bankid: "X" }]);
-  console.assert(a[0].id === "1", "id should be preserved");
-  const b = normalizeConnections([{ bankid: "B2", provider: "LINE_BANK" }]);
-  console.assert(b[0].id === "B2", "id should fallback to bankid");
-  const c = normalizeConnections([{}]);
-  console.assert(c[0].provider === "" && c[0].bankaccount === "", "defaults should be empty strings");
-})();
-
-function maskAccount(acc) {
-  if (!acc) return "(no account)";
-  const s = String(acc).replace(/[^0-9A-Za-z]/g, "");
-  const tail = s.slice(-4);
-  return `•••• ${tail}`;
-}
-
-function getProviderInitial(p) {
-  if (!p) return "?";
-  const word = String(p).replace(/[^A-Za-z]/g, " ").trim().split(" ")[0] || "?";
-  return word[0].toUpperCase();
-}
-
-(function test_ui_helpers() {
-  console.assert(maskAccount("12345678").endsWith("5678"), "maskAccount shows last 4");
-  console.assert(maskAccount(0).includes("no account"), "maskAccount handles falsy");
-  console.assert(getProviderInitial("ESUN_BANK") === "E", "initial from provider");
-})();
-
-function formatTime(ts) {
-  if (!ts) return "";
-  const d = new Date(ts);
-  if (isNaN(d.getTime())) return String(ts);
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-(function test_formatTime() {
-  const out = formatTime("2025-01-02T03:04:05Z");
-  console.assert(/2025-0?1-0?2/.test(out), "formatTime date ok");
-})();
-
-function formatCurrencyTWD(val) {
-  const n = Number(val);
-  if (!isFinite(n)) return String(val ?? "");
-  try {
-    return new Intl.NumberFormat("zh-TW", { style: "decimal", maximumFractionDigits: 0 }).format(n);
-  } catch {
-    return String(val);
-  }
-}
-
-function formatTimeLocalTPE(ts) {
-  try {
-    const d = new Date(ts);
-    if (isNaN(d.getTime())) return String(ts);
-    const parts = new Intl.DateTimeFormat("zh-TW", {
-      timeZone: "Asia/Taipei",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })
-      .formatToParts(d)
-      .reduce((acc, p) => {
-        acc[p.type] = p.value; 
-        return acc;           
-      }, {}); 
-    return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
-  } catch {
-    return String(ts ?? "");
-  }
-}
-
-
-(function test_formatters() {
-  const c = formatCurrencyTWD(12345);
-  console.assert(/12,?345/.test(c), "currency grouping ok");
-  const t = formatTimeLocalTPE("2025-01-02T03:04:05Z");
-  console.assert(/2025-0?1-0?2/.test(t), "TPE time formatted");
-})();
-
-const BANK_LOGOS = {
-  LINE_BANK: "/logo/LINEBANK.png",
-  CATHAY_BANK: "/logo/CATHAYBANK.png",
-  ESUN_BANK: "/logo/ESUNBANK.png",
-  CH_BANK: "/logo/CHBANK.png"
-};
-
-function getBankLogoSrc(provider) {
-  const key = String(provider || "").toUpperCase();
-  return BANK_LOGOS[key] || null;
-}
-
-const PROVIDER_LABELS = {
-  LINE_BANK: "LINE Bank",
-  CATHAY_BANK: "CATHAY Bank",
-  ESUN_BANK: "ESUN Bank",
-  CH_BANK: "CH Bank"
-};
-
-function labelOf(p) {
-  const key = String(p || "").toUpperCase();
-  return PROVIDER_LABELS[key] || String(p || "").toUpperCase();
-}
-
-/* =======================
-   Component
-   ======================= */
+const versionNumber = "v1.4.1 250923";
    
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -145,20 +19,34 @@ const Dashboard = () => {
   const [userEmail, setUserEmail] = useState("");
   const [theme, setTheme] = useState("dark");      
   const [banner, setBanner] = useState(null);
-  const [selectedBank, setSelectedBank] = useState(null); // 用來儲存當前選擇的銀行資料
-  const [isModalOpen, setIsModalOpen] = useState(false); // 控制模態框的顯示與隱藏
-  const [totalAssets, setTotalAssets] = useState(0);//記錄所有財產
+  const [selectedBank, setSelectedBank] = useState(null); 
+  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [totalAssets, setTotalAssets] = useState(0);
+  const [totalCash, setTotalCash] = useState(0); // 用來儲存總現金
+  const [totalStock, setTotalStock] = useState(0); // 用來儲存總股票
+  const [visibleStep, setVisibleStep] = useState(0);
+
+
 
 
   const calculateTotalAssets = () => {
-    const total = banks.reduce((sum, bank) => {
-      // 計算所有 bankcard 上的現金 (BcCash) 和 股票 (BcStock)
-      const cash = bank.BcCash || 0;  // 如果沒有 BcCash 就視為 0
-      const stock = bank.BcStock || 0; // 如果沒有 BcStock 就視為 0
-      return sum + cash + stock;  // 累加現金和股票
-    }, 0);
+    let total = 0;  // 總財產
+    let cash = 0;   // 總現金
+    let stock = 0;  // 總股票
+
+    // 遍歷所有的銀行帳戶，累加現金和股票
+    banks.forEach((bank) => {
+      const bankCash = bank.BcCash || 0;  // 如果沒有 BcCash，就視為 0
+      const bankStock = bank.BcStock || 0; // 如果沒有 BcStock，就視為 0
+
+      total += bankCash + bankStock;  // 累加現金和股票，得到總財產
+      cash += bankCash;  // 累加現金
+      stock += bankStock; // 累加股票
+    });
 
     setTotalAssets(total);  // 更新總財產
+    setTotalCash(cash);     // 更新總現金
+    setTotalStock(stock);   // 更新總股票
   };
 
   useEffect(() => {
@@ -445,6 +333,21 @@ const Dashboard = () => {
 
   };
 
+  useEffect(() => {
+    if (loading) {
+      const timeout1 = setTimeout(() => setVisibleStep(1), 500);  // 顯示第一個文字
+      const timeout2 = setTimeout(() => setVisibleStep(2), 2500); // 顯示第二個文字
+      const timeout3 = setTimeout(() => setVisibleStep(3), 5500); // 顯示第三個文字
+
+      // 清除定時器
+      return () => {
+        clearTimeout(timeout1);
+        clearTimeout(timeout2);
+        clearTimeout(timeout3);
+      };
+    }
+  }, [loading]);
+
   return (
     <div className={styles.screen} data-theme={theme}>
       <div className={styles.frame}>
@@ -512,7 +415,7 @@ const Dashboard = () => {
                 alt="Delete"
                 className={styles.deleteIcon}
               />
-              Logout
+              LOGOUT
             </button>
         </div>
 
@@ -539,11 +442,19 @@ const Dashboard = () => {
                   <header className={styles.userBar}>
                     <div className={styles.userLabel}>
                       <span className={styles.userAvatar} />
-                      Welcome !!! {userAccount} {userEmail && `${userEmail}`}
-                      <div >
-                        <strong>Total Assets: </strong>
-                        NT$ {formatCurrencyTWD(totalAssets)} 
+                      <div className={styles.userInfo}>
+                        <div className={styles.welcomeText}>
+                          Welcome !!! {userAccount} {userEmail && `${userEmail}`}
+                        </div>
+                        <div className={styles.totalAssets}>
+                          <strong>Total Assets: </strong>
+                          NT$ {formatCurrencyTWD(totalAssets)}
+                        </div>
                       </div>
+                    </div>
+                    <div>
+                      <p>CASH: NT$ {formatCurrencyTWD(totalCash)}</p>
+                      <p>STOCK: NT$ {formatCurrencyTWD(totalStock)}</p>
                     </div>
 
 
@@ -561,7 +472,9 @@ const Dashboard = () => {
                       {loading && (
                         <div className={styles.loadingOverlay}>
                           <div className={styles.spinner}></div>
-                          <p>Connecting...</p>
+                          {visibleStep >= 1 && <p>Linking Your Bank Account! Please Wait!</p>}
+                          {visibleStep >= 2 && <p>Fetching Your Balance ...</p>}
+                          {visibleStep >= 3 && <p>It's almost done!</p>}
                         </div>
                       )}
 
