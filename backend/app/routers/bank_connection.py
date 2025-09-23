@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 
 import subprocess
 import os
+import re
 import json
 
 from pydantic import BaseModel
@@ -86,6 +87,7 @@ BASE_DIR = "/home/kevin/Desktop/BankLinker/bankhub/backend/app/mypython"
 PROVIDER_SCRIPT_MAP = {
     "LINE_BANK": "FetchLinebank.py",
     "ESUN_BANK": "FetchEsunbank.py",
+    "CATHAY_BANK": "FetchCathaybank.py"
     # 之後要擴充就在這裡加
 }
 
@@ -124,44 +126,47 @@ async def update_cash(
         ['python3', script_path, account, password, bank_conn_id],
         capture_output=True, text=True
     )
-    print(result)
     if result.returncode == 0:
         try:
-            print(f"[DEBUG] Script output: {result.stdout}")  # 打印腳本輸出的內容
-            result_data = json.loads(result.stdout)
+            # 打印腳本輸出的內容
+            print(f"[DEBUG] Script output: {result.stdout}")
+
+            # 使用正則表達式提取有效的 JSON 部分
+            json_string = re.search(r'(\{.*\})', result.stdout, re.DOTALL)
+            if json_string:
+                result_data = json.loads(json_string.group(0))  # 解析 JSON 部分
+            else:
+                raise HTTPException(status_code=500, detail="無法找到有效的 JSON 數據")
 
             account_name = result_data.get("account_name")
             available_balance = result_data.get("available_balance")
-            stock = result_data.get('stock') if provider == "ESUN_BANK" else 0
-            #print(stock)
-            # 確保 available_balance 是字串並可以進行 replace() 操作
+            stock = result_data.get('stock') if provider in ["ESUN_BANK", "CATHAY_BANK"] else 0
+
+            # 處理 available_balance 格式
             if isinstance(available_balance, str):
-                if available_balance.replace(",", "").isdigit():
-                    available_balance = int(available_balance.replace(",", ""))
+                available_balance = available_balance.replace(",", "")
+                if available_balance.isdigit():
+                    available_balance = int(available_balance)
                 else:
                     raise HTTPException(status_code=400, detail="無效的可用餘額格式")
             elif isinstance(available_balance, int):
-                # 如果 available_balance 已經是整數，則直接使用它
-                available_balance = available_balance
+                pass  # 如果已經是整數，則不處理
             else:
                 raise HTTPException(status_code=400, detail="無效的可用餘額格式")
 
-            conn = (
-                db.query(DBBankConnection)
-                #確認該bankCard
-                .filter(
-                    DBBankConnection.bankid == bank_conn_id,   
-                    DBBankConnection.provider == provider, 
-                )
-                .one_or_none()
-            )
+            # 查詢銀行連接
+            conn = db.query(DBBankConnection).filter(
+                DBBankConnection.bankid == bank_conn_id,   
+                DBBankConnection.provider == provider
+            ).one_or_none()
+
             if not conn:
                 raise HTTPException(status_code=404, detail="找不到該銀行連接")
 
             conn.last_update = datetime.now(timezone.utc) 
-            conn.BcCash = available_balance  # 使用有效的可用餘額
+            conn.BcCash = available_balance
             conn.BcMainaccount = str(account_name)
-            conn.BcStock = int(stock) if provider == "ESUN_BANK" else 0
+            conn.BcStock = int(stock) if provider in ["ESUN_BANK", "CATHAY_BANK"] else 0
 
             db.commit()
             db.refresh(conn)
@@ -176,12 +181,11 @@ async def update_cash(
 
             return response
 
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=500, detail="解析腳本回應失敗")
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=500, detail=f"解析腳本回應失敗: {str(e)}")
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
-    else:
-        raise HTTPException(status_code=500, detail=result.stderr)
+
 
 
 
@@ -192,9 +196,6 @@ async def update_cash(
 #==================================================================#
 @router.get("/line_bank", response_model=dict)
 def get_line_bank_account(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    """
-    查詢目前登入者在 provider=LINE_BANK 下的銀行帳號資料。
-    """
     bank_connection = db.query(DBBankConnection).filter(
         DBBankConnection.user_id == user.id,
         DBBankConnection.provider == "LINE_BANK"
@@ -203,7 +204,6 @@ def get_line_bank_account(db: Session = Depends(get_db), user: User = Depends(ge
     if not bank_connection:
         raise HTTPException(status_code=404, detail="No bank connection found for LINE_BANK")
 
-    # 返回銀行帳號的資料
     return {
         "bankaccount": bank_connection.bankaccount,
         "bankid": bank_connection.bankid,
@@ -211,25 +211,36 @@ def get_line_bank_account(db: Session = Depends(get_db), user: User = Depends(ge
     }
 
 @router.get("/esun_bank", response_model=dict)
-def get_line_bank_account(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    """
-    查詢目前登入者在 provider=LINE_BANK 下的銀行帳號資料。
-    """
+def get_esun_bank_account(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     bank_connection = db.query(DBBankConnection).filter(
         DBBankConnection.user_id == user.id,
         DBBankConnection.provider == "ESUN_BANK"
     ).first()
 
     if not bank_connection:
-        raise HTTPException(status_code=404, detail="No bank connection found for LINE_BANK")
+        raise HTTPException(status_code=404, detail="No bank connection found for ESUN_BANK")
 
-    # 返回銀行帳號的資料
     return {
         "bankaccount": bank_connection.bankaccount,
         "bankid": bank_connection.bankid,
         "bankpassword": bank_connection.bankpassword
     }
 
+@router.get("/cathay_bank", response_model=dict)
+def get_cathay_bank_account(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    bank_connection = db.query(DBBankConnection).filter(
+        DBBankConnection.user_id == user.id,
+        DBBankConnection.provider == "CATHAY_BANK"
+    ).first()
+
+    if not bank_connection:
+        raise HTTPException(status_code=404, detail="No bank connection found for CATHAY_BANK")
+
+    return {
+        "bankaccount": bank_connection.bankaccount,
+        "bankid": bank_connection.bankid,
+        "bankpassword": bank_connection.bankpassword
+    }
 #==================================================================#
 #刪除當前使用者 當前BANK Provider、BANK ID的資料 (只會有唯一資料被刪除)#
 #==================================================================#

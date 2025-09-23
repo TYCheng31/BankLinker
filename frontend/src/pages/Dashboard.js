@@ -379,9 +379,38 @@ const Dashboard = () => {
   };
 
   const UpdateCathaybank = async (bank) => {
-    // TODO: CATHAY 的更新流程
-    setBanner("Cathay Bank is not finished yet");
-    setTimeout(() => setBanner(null), 2000);
+    try {
+      setLoading(true);
+      const { data: bankData } = await axios.get('/bank-connections/cathay_bank');
+      const account = bankData.bankaccount;
+      const password = bankData.bankpassword;
+      const id = bankData.bankid;
+      const provider = "CATHAY_BANK";
+
+      const res = await axios.post('/bank-connections/update_cash', { account, password, id, provider}, { headers: { "Content-Type": "application/json" } });
+      const mainAccount = res.data.account_name
+      const stock = res.data.stock
+      console.log(stock)
+      const nowIso = new Date().toISOString();
+
+      // 只更新被點擊的那一筆
+      setBanks((prev) =>
+        prev.map((x) =>
+          x.bankid === id && String(x.provider).toUpperCase() === provider
+            ? { ...x, account, cash: res.data.available_balance, last_update: nowIso, mainAccount, stock }
+            : x
+        )
+      );
+
+    } catch (err) {
+      const errMsg =
+        err?.response?.data?.detail
+          ? JSON.stringify(err.response.data.detail)
+          : err?.response?.data?.error || err.message;
+      alert(`Failed to update cash: ${errMsg}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
 //###################################################################################################

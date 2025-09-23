@@ -12,6 +12,8 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://192.168.1.61:3000",
     "http://192.168.1.61:5173",
+    "https://d7ebcce482fe.ngrok-free.app:3000",
+    "https://d7ebcce482fe.ngrok-free.app:5173"
 
 ]
 
