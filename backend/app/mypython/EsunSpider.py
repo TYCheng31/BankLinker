@@ -7,11 +7,20 @@ from selenium.webdriver.chrome.options import Options
 import re
 import os
 import time
+import sys
 
+
+if len(sys.argv) < 4:
+    sys.stderr.write("Usage: test.py <id> <Account> <Password>\n")
+    sys.exit(2)
+
+id = sys.argv[1] 
+Account = sys.argv[2]
+Password = sys.argv[3]
 # ======== 認證參數（建議用環境變數帶入，避免硬編碼） ========
-ESUN_id = os.getenv("ESUN_ID", "D123058213")
-ESUNaccount = os.getenv("ESUN_ACCOUNT", "tycheng31")
-ESUNpassword = os.getenv("ESUN_PASSWORD", "Nivekkevin31")
+ESUN_id = os.getenv("ESUN_ID", id)
+ESUNaccount = os.getenv("ESUN_ACCOUNT", Account)
+ESUNpassword = os.getenv("ESUN_PASSWORD", Password)
 
 # 若你要在伺服器上跑可改為 True（headless）
 HEADLESS = False
@@ -106,12 +115,10 @@ balance_value = int(balance_text)
 
 print("ESUNStock:", balance_value)
 
+time.sleep(10000)
+
 logout_button = driver.find_element(By.CSS_SELECTOR, "a.log_out")  # 使用CSS選擇器定位
 logout_button.click()
-
-
-
-
 
 # ======================== 等待你關閉瀏覽器 ========================
 try:

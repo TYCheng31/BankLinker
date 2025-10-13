@@ -26,9 +26,6 @@ const Dashboard = () => {
   const [totalStock, setTotalStock] = useState(0); // 用來儲存總股票
   const [visibleStep, setVisibleStep] = useState(0);
 
-
-
-
   const calculateTotalAssets = () => {
     let total = 0;  // 總財產
     let cash = 0;   // 總現金
