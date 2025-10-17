@@ -377,7 +377,7 @@ const Dashboard = () => {
               alt="Delete"
               className={styles.deleteIcon}
             />
-            SETTING
+            ANALYSIS
           </button>
 
           <div className={styles.sidebarGroupTitle}>Banks</div>
