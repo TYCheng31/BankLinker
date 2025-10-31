@@ -10,17 +10,15 @@ ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
-    "http://192.168.1.61:3000",
-    "http://192.168.1.61:5173",
-    "https://d7ebcce482fe.ngrok-free.app:3000",
-    "https://d7ebcce482fe.ngrok-free.app:5173"
+    "http://192.168.1.202:3000",
+    "http://192.168.1.202:5173",
 
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,      # 若你沒用 cookie，也可設 False
+    allow_credentials=True,      
     allow_methods=["*"],
     allow_headers=["*"],
 )

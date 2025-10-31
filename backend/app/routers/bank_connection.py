@@ -88,7 +88,6 @@ PROVIDER_SCRIPT_MAP = {
     "LINE_BANK": "FetchLinebank.py",
     "ESUN_BANK": "FetchEsunbank.py",
     "CATHAY_BANK": "FetchCathaybank.py"
-    # 之後要擴充就在這裡加
 }
 
 def _resolve_script(provider: str) -> str:
@@ -128,13 +127,10 @@ async def update_cash(
     )
     if result.returncode == 0:
         try:
-            # 打印腳本輸出的內容
             print(f"[DEBUG] Script output: {result.stdout}")
-
-            # 使用正則表達式提取有效的 JSON 部分
             json_string = re.search(r'(\{.*\})', result.stdout, re.DOTALL)
             if json_string:
-                result_data = json.loads(json_string.group(0))  # 解析 JSON 部分
+                result_data = json.loads(json_string.group(0))  
             else:
                 raise HTTPException(status_code=500, detail="無法找到有效的 JSON 數據")
 
@@ -150,11 +146,10 @@ async def update_cash(
                 else:
                     raise HTTPException(status_code=400, detail="無效的可用餘額格式")
             elif isinstance(available_balance, int):
-                pass  # 如果已經是整數，則不處理
+                pass  
             else:
                 raise HTTPException(status_code=400, detail="無效的可用餘額格式")
 
-            # 查詢銀行連接
             conn = db.query(DBBankConnection).filter(
                 DBBankConnection.bankid == bank_conn_id,   
                 DBBankConnection.provider == provider
@@ -186,13 +181,8 @@ async def update_cash(
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
 
-
-
-
-
-
 #==================================================================#
-#讓後端爬蟲程式取得銀行的帳號密碼                                    #
+#讓後端爬蟲程式取得銀行的帳號密碼                                       #
 #==================================================================#
 @router.get("/line_bank", response_model=dict)
 def get_line_bank_account(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
@@ -249,7 +239,6 @@ def get_cathay_bank_account(db: Session = Depends(get_db), user: User = Depends(
 async def delete_bank_connection(provider: str, bankid: str, db: Session = Depends(get_db)):
     print(f"Deleting bank connection: provider={provider}, bankid={bankid}")
     
-    # 查詢資料庫中的資料
     bank = db.query(DBBankConnection).filter(
         DBBankConnection.provider == provider,
         DBBankConnection.bankid == bankid
@@ -270,35 +259,31 @@ class EmailRequest(BaseModel):
     subject: str
     body: str
 
-# 發送 Email 函數
-def send_email(to: str, subject: str, body: str):
-    from_email = "xiaochiprojectuse@gmail.com"  # 你的郵箱
-    from_password = "chengxiaochi0331"  # 你的郵箱密碼
 
-    # 設定 SMTP 伺服器
+def send_email(to: str, subject: str, body: str):
+    from_email = "xiaochiprojectuse@gmail.com"  
+    from_password = "chengxiaochi0331"  
+
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
 
-    # 建立一封郵件
+
     msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = to
     msg['Subject'] = subject
 
-    # 郵件內容
     msg.attach(MIMEText(body, 'plain'))
 
     try:
-        # 連接到 Gmail 的 SMTP 伺服器
         with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()  # 開啟 TLS 加密
-            server.login(from_email, from_password)  # 登錄郵箱
-            text = msg.as_string()  # 將郵件訊息轉為字串
-            server.sendmail(from_email, to, text)  # 發送郵件
+            server.starttls() 
+            server.login(from_email, from_password)  
+            text = msg.as_string()  
+            server.sendmail(from_email, to, text)  
         return {"message": "Email sent successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send email: {e}")
-
 
 @router.post("/SendEmail")
 async def send_email_api(email_request: EmailRequest):

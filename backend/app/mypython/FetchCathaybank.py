@@ -25,9 +25,7 @@ HEADLESS = True
 # ======================== 基本設定 ========================
 chrome_options = Options()
 if HEADLESS:
-    # 新版 headless 模式
     chrome_options.add_argument("--headless")
-    # headless 下沒有真正「最大化」概念，用視窗大小模擬
     chrome_options.add_argument("--window-size=1920,1080")
 
 chrome_options.add_argument("--no-sandbox")
@@ -38,11 +36,11 @@ driver = webdriver.Chrome(options=chrome_options)
 
 def clean_balance(balance_text):
     """清理數字文本，去除逗號並轉換為數字。"""
-    cleaned_text = re.sub(r',', '', balance_text)  # 去除逗號
+    cleaned_text = re.sub(r',', '', balance_text)  
     try:
-        return int(cleaned_text)  # 轉換為浮動數字
+        return int(cleaned_text) 
     except ValueError:
-        return 0.0  # 如果無法轉換為數字，則返回 0.0
+        return 0.0  
 
 try:
     # ======================== 登入流程 ========================
@@ -83,7 +81,6 @@ try:
     balance_text = balance_element.text
     print(f"TD Balance: {balance_text}")
 
-    # 清理並轉換為數字
     CathayCash = clean_balance(balance_text)
 
     tabFUND = WebDriverWait(driver, 20).until(
@@ -111,7 +108,6 @@ try:
         "stock": CathayStock,
     }
 
-    # 輸出結果
     print(json.dumps(result))
 
 except Exception as e:

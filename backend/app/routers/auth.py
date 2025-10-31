@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database.db import get_db
 from app.models.user import User as DBUser
-from app.schemas.user import UserCreate, UserOut  # UserCreate 內含 email/password
+from app.schemas.user import UserCreate, UserOut 
 from app.utils.security import create_access_token, verify_password, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -23,7 +23,7 @@ def login(payload: UserCreate, db: Session = Depends(get_db)):
     if user is None or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid credentials")
 
-    token = create_access_token(sub=str(user.id))  # ← 關鍵：把 user.id 寫入 sub
+    token = create_access_token(sub=str(user.id)) 
     return {"access_token": token, "token_type": "bearer"}
 
 

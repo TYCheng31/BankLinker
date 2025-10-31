@@ -80,7 +80,6 @@ const Dashboard = () => {
     fetchBanks();
   }, [navigate]);
 
-  // init theme from localStorage or system preference; persist on change
   useEffect(() => {
     try {
       const saved = localStorage.getItem("theme");
@@ -100,7 +99,7 @@ const Dashboard = () => {
   useEffect(() => {
     // 每次 banks 更新時計算總財產
     calculateTotalAssets();
-  }, [banks]);  // 依賴於 banks，當 banks 更新時重新計算
+  }, [banks]);  // 當 banks 更新時重新計算
 
 
   const handleChange = (e) => {
@@ -119,7 +118,6 @@ const Dashboard = () => {
 
     try {
       const res = await axios.post("/bank-connections/", payload);
-      setMessage("✅");
       setForm({ bank_id: "", provider: "", account: "", password: "" });
       setShowAddContainer(false);
       setBanner("已新增銀行連線");
@@ -139,13 +137,12 @@ const Dashboard = () => {
       ]);
     } catch (err) {
       console.error("submit error", err.response?.data || err.message);
-      setMessage("❌");
     }
   };
 
   const handleLogout = async () => {
     try {
-      // 若有登出 API 可呼叫；此處直接前端清理
+  
     } finally {
       sessionStorage.removeItem("access_token");
       sessionStorage.removeItem("user_account");
@@ -306,9 +303,9 @@ const Dashboard = () => {
     CATHAY_BANK: UpdateCathaybank,
   };
 
-  // === 依 provider 呼叫對應的更新函式 ===
+
   const UpdateBankCash = async (bank, e) => {
-    e?.stopPropagation?.(); // 避免觸發卡片 onClick
+    e?.stopPropagation?.(); 
     const key = String(bank?.provider || "").toUpperCase();
     const fn = providerUpdaters[key];
 
@@ -319,7 +316,7 @@ const Dashboard = () => {
     }
 
     try {
-      await fn(bank); // 有些函式需要 bank 物件，就把 bank 傳進去
+      await fn(bank); 
       window.location.reload();
     } catch (err) {
       console.error("Update error:", err);
@@ -327,7 +324,6 @@ const Dashboard = () => {
       setTimeout(() => setBanner(null), 2000);
     }
     //刷新頁面
-
   };
 
   useEffect(() => {
@@ -336,7 +332,6 @@ const Dashboard = () => {
       const timeout2 = setTimeout(() => setVisibleStep(2), 2500); // 顯示第二個文字
       const timeout3 = setTimeout(() => setVisibleStep(3), 5500); // 顯示第三個文字
 
-      // 清除定時器
       return () => {
         clearTimeout(timeout1);
         clearTimeout(timeout2);
@@ -355,7 +350,7 @@ const Dashboard = () => {
 
           <button onClick={() => navigate("")} className={styles.navBtn}>
             <img
-              src="/logo/homeButton.png"  // 修改為你的圖片路徑
+              src="/logo/homeButton.png"  
               alt="Delete"
               className={styles.deleteIcon}
             />
@@ -364,7 +359,7 @@ const Dashboard = () => {
 
           <button onClick={() => navigate("home")} className={styles.navBtn}>
             <img
-              src="/logo/linkerButton.png"  // 修改為你的圖片路徑
+              src="/logo/linkerButton.png"  
               alt="Delete"
               className={styles.deleteIcon}
             />
@@ -373,7 +368,7 @@ const Dashboard = () => {
 
           <button onClick={() => navigate("reports")} className={styles.navBtn}>
             <img
-              src="/logo/settingButton.png"  // 修改為你的圖片路徑
+              src="/logo/settingButton.png"  
               alt="Delete"
               className={styles.deleteIcon}
             />
@@ -383,7 +378,7 @@ const Dashboard = () => {
           <div className={styles.sidebarGroupTitle}>Banks</div>
           <button onClick={() => setShowAddContainer(true)} className={styles.navBtn}>
             <img
-              src="/logo/addButton.png"  // 修改為你的圖片路徑
+              src="/logo/addButton.png"  
               alt="Delete"
               className={styles.deleteIcon}
             />
@@ -408,7 +403,7 @@ const Dashboard = () => {
             </label>
             <button onClick={handleLogout} className={styles.navBtn}>
               <img
-                src="/logo/logoutButton.png"  // 修改為你的圖片路徑
+                src="/logo/logoutButton.png"  
                 alt="Delete"
                 className={styles.deleteIcon}
               />
@@ -518,7 +513,7 @@ const Dashboard = () => {
                                 onClick={(e) => UpdateBankCash(b, e)}
                               >
                                 <img
-                                  src="/logo/updateButton.png"  // 修改為你的圖片路徑
+                                  src="/logo/updateButton.png"  
                                   alt="Delete"
                                   className={styles.deleteIcon}
                                 />
@@ -528,12 +523,12 @@ const Dashboard = () => {
                               <button
                                 className={styles.deleteBtn}
                                 onClick={(e) => {
-                                  e.stopPropagation(); // 防止觸發卡片的點擊事件
+                                  e.stopPropagation(); 
                                   handleOpenModal(b);     
                                 }}
                               >
                                 <img
-                                  src="/logo/deleteButton.png"  // 修改為你的圖片路徑
+                                  src="/logo/deleteButton.png"  
                                   alt="Delete"
                                   className={styles.deleteIcon}
                                 />
@@ -554,7 +549,7 @@ const Dashboard = () => {
                     />
                     <button type="button" className={styles.fab} aria-label="Add Bank Connection" onClick={toggleAddContainer}>
                       <img
-                        src="/logo/addbankButton.png"  // 修改為你的圖片路徑
+                        src="/logo/addbankButton.png"  
                         alt="Delete"
                         className={styles.deleteIcon}
                       />

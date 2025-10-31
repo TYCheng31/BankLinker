@@ -49,13 +49,11 @@ try:
     driver.get("https://ebank.esunbank.com.tw/index.jsp")
     wait = WebDriverWait(driver, 120)
 
-    # 先切進 iframe1
     driver.switch_to.default_content()
     WebDriverWait(driver, 20).until(
         EC.frame_to_be_available_and_switch_to_it((By.ID, "iframe1"))
     )
 
-    # 找到 custid 欄位並輸入
     cust_input = WebDriverWait(driver, 20).until(
         EC.visibility_of_element_located((By.ID, "loginform:custid"))
     )
@@ -84,10 +82,9 @@ try:
         EC.presence_of_element_located((By.ID, "_0"))
     )
 
-    # 取文字內容
     EsunAccount = span_el.text.strip()
     
-    #
+
     personal_balance_sheet = WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.XPATH, "//a[text()='個人資產負債表']"))
     )
@@ -97,10 +94,8 @@ try:
         EC.presence_of_element_located((By.ID, "fms01010a:twTd2"))
     )
 
-    # 取得文本並去掉逗號
-    balance_text = balance_td.text.strip().replace(",", "")
 
-    # 將文本轉換為數字
+    balance_text = balance_td.text.strip().replace(",", "")
     EsunCash = int(balance_text)
 
 
@@ -108,15 +103,11 @@ try:
         EC.presence_of_element_located((By.ID, "fms01010a:stockTd2"))
     )
 
-    # 取得文本並去掉逗號
     balance_text = balance_td.text.strip().replace(",", "")
 
-    # 將文本轉換為數字
     EsunStock = int(balance_text)
 
-    #
-
-    logout_button = driver.find_element(By.CSS_SELECTOR, "a.log_out")  # 使用CSS選擇器定位
+    logout_button = driver.find_element(By.CSS_SELECTOR, "a.log_out") 
     logout_button.click()
 
     result = {
@@ -125,7 +116,6 @@ try:
         "stock": EsunStock,
     }
 
-    # 輸出結果
     print(json.dumps(result))
 
 except Exception as e:

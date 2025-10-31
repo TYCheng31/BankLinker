@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import styles from "./Login.module.css"; // 引入 CSS 模塊
+import styles from "./Login.module.css"; 
 
 function isTokenValid(t) {
   if (!t) return false;
   try {
     const [, payload] = t.split(".");
-    if (!payload) return true; // 非 JWT：交給後端驗
-    const { exp } = JSON.parse(atob(payload)); // 解析 exp（秒）
+    if (!payload) return true; 
+    const { exp } = JSON.parse(atob(payload)); 
     return !exp || Date.now() < exp * 1000;
   } catch {
-    return true; // 不是標準 JWT 就視為交給後端
+    return true; 
   }
 }
 
@@ -21,9 +21,8 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 頁面載入時加入特定的 body 樣式
   useEffect(() => {
-    document.body.classList.add(styles.loginBody); // 為 body 添加 Login 頁面樣式
+    document.body.classList.add(styles.loginBody); 
 
     return () => {
       document.body.classList.remove(styles.loginBody); // 清除 body 樣式
