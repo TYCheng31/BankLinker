@@ -3,9 +3,10 @@ import axios from "axios";
 import { Routes, Route, useNavigate, Outlet} from "react-router-dom";
 import styles from "./Dashboard.module.css";
 import ConfirmDeleteModal from './ConfirmDeleteModal';
-import {normalizeConnections, maskAccount, getProviderInitial, formatTime, formatCurrencyTWD, formatTimeLocalTPE, BANK_LOGOS, getBankLogoSrc, PROVIDER_LABELS, labelOf} from '../utils/utils';
+import {normalizeConnections, maskAccount, getProviderInitial, formatTime, formatCurrencyTWD, 
+      formatTimeLocalTPE, BANK_LOGOS, getBankLogoSrc, PROVIDER_LABELS, labelOf} from '../utils/utils';
 
-const versionNumber = "v1.4.1 250923";
+const version_num = "v1.4.1 251117";
    
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -22,28 +23,27 @@ const Dashboard = () => {
   const [selectedBank, setSelectedBank] = useState(null); 
   const [isModalOpen, setIsModalOpen] = useState(false); 
   const [totalAssets, setTotalAssets] = useState(0);
-  const [totalCash, setTotalCash] = useState(0); // 用來儲存總現金
-  const [totalStock, setTotalStock] = useState(0); // 用來儲存總股票
+  const [totalCash, setTotalCash] = useState(0); 
+  const [totalStock, setTotalStock] = useState(0); 
   const [visibleStep, setVisibleStep] = useState(0);
 
   const calculateTotalAssets = () => {
-    let total = 0;  // 總財產
-    let cash = 0;   // 總現金
-    let stock = 0;  // 總股票
+    let total = 0;  
+    let cash = 0;   
+    let stock = 0; 
 
-    // 遍歷所有的銀行帳戶，累加現金和股票
     banks.forEach((bank) => {
-      const bankCash = bank.BcCash || 0;  // 如果沒有 BcCash，就視為 0
-      const bankStock = bank.BcStock || 0; // 如果沒有 BcStock，就視為 0
+      const bankCash = bank.BcCash || 0;  
+      const bankStock = bank.BcStock || 0; 
 
-      total += bankCash + bankStock;  // 累加現金和股票，得到總財產
-      cash += bankCash;  // 累加現金
-      stock += bankStock; // 累加股票
+      total += bankCash + bankStock;  
+      cash += bankCash;  
+      stock += bankStock;
     });
 
-    setTotalAssets(total);  // 更新總財產
-    setTotalCash(cash);     // 更新總現金
-    setTotalStock(stock);   // 更新總股票
+    setTotalAssets(total);  
+    setTotalCash(cash);    
+    setTotalStock(stock);   
   };
 
   useEffect(() => {
@@ -295,14 +295,13 @@ const Dashboard = () => {
     }
   };
 
-//###################################################################################################
-
   const providerUpdaters = {
     LINE_BANK: UpdateLinebank,
     ESUN_BANK: UpdateEsunbank,
     CATHAY_BANK: UpdateCathaybank,
   };
 
+//###################################################################################################
 
   const UpdateBankCash = async (bank, e) => {
     e?.stopPropagation?.(); 
@@ -617,7 +616,7 @@ const Dashboard = () => {
         {/*right/ Version*/}
         <div className={styles.right}>
           <div style={{ padding: 16, lineHeight: 1.6, fontSize: 14 }}>
-            <div style={{ marginBottom: 8 }}>Version：{versionNumber}</div>
+            <div style={{ marginBottom: 8 }}>Version：{version_num}</div>
             <div style={{ margin: "8px 0 6px", fontWeight: 600 }}>Support Bank</div>
 
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>

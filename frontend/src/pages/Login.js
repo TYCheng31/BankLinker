@@ -25,7 +25,7 @@ const Login = () => {
     document.body.classList.add(styles.loginBody); 
 
     return () => {
-      document.body.classList.remove(styles.loginBody); // 清除 body 樣式
+      document.body.classList.remove(styles.loginBody); 
     };
   }, []);
 
